@@ -1,10 +1,10 @@
-import { Box, Button, Input, Select, Tab, TabList, TabPanel, TabPanels, Tabs, Text, VStack } from '@chakra-ui/react'
+import { Box, Button, Checkbox, HStack, Input, Select, Tab, TabList, TabPanel, TabPanels, Tabs, Text, VStack } from '@chakra-ui/react'
 import Chart from '../components/Chart'
 
 export const Dashboard = () => {
   return (
     <VStack w="full" justifyContent="flex-start">
-      <Text w="80%" my="12px" fontSize="16px">Pengeluaran hari ini :  <Text fontSize="32px">Rp.80.000</Text></Text>
+      <Text w="80%" my="12px" fontSize="16px">Pengeluaran hari ini :  <Text fontSize="32px" fontWeight="600">Rp.80.000</Text></Text>
       <Box display={"flex"} justifyContent='space-between' flexDirection={{ base: "column", 'md': 'row' }} w={{ base: "90%", 'md': "80%" }}>
 
         <Chart />
@@ -12,8 +12,8 @@ export const Dashboard = () => {
 
           <Tabs w="full">
             <TabList>
-              <Tab defaultChecked>Catatan</Tab>
-              <Tab>Grup</Tab>
+              <Tab w="50%" defaultChecked>Catatan</Tab>
+              <Tab w="50%" >Grup</Tab>
             </TabList>
 
             <TabPanels>
@@ -65,9 +65,28 @@ export const Dashboard = () => {
                   />
                 </VStack>
 
+                <HStack mb="14px" w="98%" justifyContent="space-between">
+                  <Checkbox
+                    // value={value}
+                    // onChange={handleChange}
+                    size='sm'
+                  />
+                  <Text w="full" mb='8px'>grup pengeluaran general hari ini</Text>
+                </HStack>
+
                 <VStack mb="14px" w="98%" justifyContent="space-between">
-                  <Text w="full" mb='8px'>Jumlah :</Text>
+                  <Text w="full" mb='8px'>Limit :</Text>
                   <Input
+                    // value={value}
+                    // onChange={handleChange}
+                    size='sm'
+                  />
+                </VStack>
+
+                <VStack mb="14px" w="98%" justifyContent="space-between">
+                  <Text w="full" mb='8px'>tanggal akhir grup :</Text>
+                  <Input
+                    type='date'
                     // value={value}
                     // onChange={handleChange}
                     size='sm'
@@ -84,6 +103,50 @@ export const Dashboard = () => {
 
 
         </VStack>
+      </Box>
+
+      <Text w="80%" my="12px" fontSize="19px">Grup terbaru</Text>
+      <Box display={"flex"} justifyContent='space-between' flexWrap='wrap'  flexDirection={{ base: "column", 'md': 'row' }} w={{ base: "90%", 'md': "80%" }}>
+
+        <VStack w={{ base: "100%", md: "49%" }} py="16px" px="17px" background="gray.100" borderRadius="8px" mb="18px">
+          <Text width="full" fontSize="18px">Rabu 19 Januari 2024</Text>
+          <Text width="full" fontSize="14px" mt="-6px">tgl akhir: 22 januari 2024</Text>
+          <Text width="full" fontSize="16px" display="flex">Total: <Text ml="4px" fontWeight="600">Rp. 30.000.000</Text></Text>
+          <Text width="full" fontSize="16px" display="flex">Limit: <Text ml="4px" fontWeight="600">Rp. 30.000.000</Text></Text>
+          <Text width="full" fontSize="16px" fontWeight="600">Rp. 15.000.000 dari Rp.30.000.000 | 50% </Text>
+
+          <HStack w="full" mt="12px">
+            <Button size="sm" colorScheme='blue'>Edit</Button>
+            <Button size="sm" colorScheme='red'>Delete</Button>
+          </HStack>
+        </VStack>
+
+        <VStack w={{ base: "100%", md: "49%" }} py="16px" px="17px" background="gray.100" borderRadius="8px" mb="18px">
+          <Text width="full" fontSize="18px">Rabu 19 Januari 2024</Text>
+          <Text width="full" fontSize="14px" mt="-6px">tgl akhir: 22 januari 2024</Text>
+          <Text width="full" fontSize="16px" display="flex">Total: <Text ml="4px" fontWeight="600">Rp. 30.000.000</Text></Text>
+          <Text width="full" fontSize="16px" display="flex">Limit: <Text ml="4px" fontWeight="600">Rp. 30.000.000</Text></Text>
+          <Text width="full" fontSize="16px" fontWeight="600">Rp. 15.000.000 dari Rp.30.000.000 | 50% </Text>
+
+          <HStack w="full" mt="12px">
+            <Button size="sm" colorScheme='blue'>Edit</Button>
+            <Button size="sm" colorScheme='red'>Delete</Button>
+          </HStack>
+        </VStack>
+
+        <VStack w={{ base: "100%", md: "49%" }} py="16px" px="17px" background="gray.100" borderRadius="8px" mb="18px">
+          <Text width="full" fontSize="18px">Rabu 19 Januari 2024</Text>
+          <Text width="full" fontSize="14px" mt="-6px">tgl akhir: 22 januari 2024</Text>
+          <Text width="full" fontSize="16px" display="flex">Total: <Text ml="4px" fontWeight="600">Rp. 30.000.000</Text></Text>
+          <Text width="full" fontSize="16px" display="flex">Limit: <Text ml="4px" fontWeight="600">Rp. 30.000.000</Text></Text>
+          <Text width="full" fontSize="16px" fontWeight="600">Rp. 15.000.000 dari Rp.30.000.000 | 50% </Text>
+
+          <HStack w="full" mt="12px">
+            <Button size="sm" colorScheme='blue'>Edit</Button>
+            <Button size="sm" colorScheme='red'>Delete</Button>
+          </HStack>
+        </VStack>
+
       </Box>
 
     </VStack>

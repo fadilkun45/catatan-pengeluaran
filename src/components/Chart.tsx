@@ -60,7 +60,7 @@ const Chart = () => {
                 <option value='option3'>Tahunan</option>
             </Select>
         </Box>
-        <Bar options={options} data={data} />
+        <Bar options={options}   data={data} />
     </Box>
 }
 
