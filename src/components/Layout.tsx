@@ -9,7 +9,7 @@ interface LayoutProps {
 
 export const Layout = ({children}: LayoutProps) => {
   return (
-    <Container px="0" overflowX="hidden" border={"1px solid black"}>
+    <Container zIndex="3" px="0" w="full" overflowX="hidden" border={"1px solid black"}>
       <Navbar />
       <VStack px="3" w="full" >
       {children}

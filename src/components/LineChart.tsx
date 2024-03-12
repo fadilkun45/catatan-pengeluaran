@@ -41,10 +41,11 @@ const LineChart = () => {
             margin={{ top: 50, right: 12, bottom: 50, left: 60 }}
             padding={0.3}
             innerPadding={1}
-            groupMode="grouped"
+            // groupMode="grouped"
+            animate={false}
             valueScale={{ type: 'linear' }}
             indexScale={{ type: 'band', round: true }}
-            colors={{ scheme: 'nivo' }}
+            colors={"rgb(56, 161, 105)"}
             // defs={[
             //     {
             //         id: 'dots',

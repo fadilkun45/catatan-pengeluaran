@@ -1,3 +1,4 @@
+import { chakra, color, theme } from '@chakra-ui/react'
 import { ResponsivePie } from '@nivo/pie'
 
 
@@ -21,6 +22,7 @@ const data = [
     },
 ]
 
+console.log(theme.colors.green)
 
 const PieChart = () => {
 
@@ -32,7 +34,8 @@ const PieChart = () => {
             padAngle={0.7}
             cornerRadius={3}
             activeOuterRadiusOffset={8}
-            colors={{ scheme: 'nivo' }}
+            colors={[theme.colors.green["300"],theme.colors.green["400"],theme.colors.green["500"],theme.colors.green["600"] ]}
+            
             borderWidth={1}
             borderColor={{
                 from: 'color',
