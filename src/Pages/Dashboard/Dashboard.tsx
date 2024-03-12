@@ -18,18 +18,17 @@ export const Dashboard = () => {
                     <option value='option2'>1 Tahun</option>
                 </Select>
             </Box>
+
             <Box w={"90%"} height={"50vh"} mb="8px">
                <LineChart />
             </Box>
+
             <Box w={"full"} mb="12px">
                 <Text fontSize="14px">Total berdasarkan kategori</Text>
             </Box>
             <Box w={"full"} height={"40vh"} mb="8px">
                <PieChart />
             </Box>
-
-
-
 
         </VStack>
     )

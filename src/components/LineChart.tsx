@@ -46,6 +46,7 @@ const LineChart = () => {
             valueScale={{ type: 'linear' }}
             indexScale={{ type: 'band', round: true }}
             colors={"rgb(56, 161, 105)"}
+        
             // defs={[
             //     {
             //         id: 'dots',

@@ -1,4 +1,4 @@
-import { chakra, color, theme } from '@chakra-ui/react'
+import { theme } from '@chakra-ui/react'
 import { ResponsivePie } from '@nivo/pie'
 
 
@@ -22,7 +22,6 @@ const data = [
     },
 ]
 
-console.log(theme.colors.green)
 
 const PieChart = () => {
 
