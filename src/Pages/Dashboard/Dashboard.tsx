@@ -3,14 +3,15 @@ import LineChart from '../../components/LineChart'
 import PieChart from "../../components/PieChart"
 
 export const Dashboard = () => {
+    console.log(import.meta.env.VITE_REACT_APP_TEST)
     return (
         <VStack w={"full"} >
             <Box w={"full"} mb="12px">
-                <Text fontSize="18px">Pengeluaran hari ini :</Text>
-                <Text fontSize="25px" fontWeight="bold" >Rp. 80.000</Text>
+                <Text fontSize="18px" color="gray.600">Pengeluaran hari ini :</Text>
+                <Text fontSize="25px" fontWeight="bold" color="gray.600" >Rp. 80.000</Text>
             </Box>
             <Box w={"full"} mb="12px">
-                <Text fontSize="14px">rentang waktu berdasarkan</Text>
+                <Text fontSize="14px" color="gray.600">rentang waktu berdasarkan</Text>
                 <Select fontSize="14px" mt={"8px"} h="29px">
                 <option value='option3'>1 minggu</option>
                 <option value='option3'>1 bulan</option>
@@ -24,7 +25,7 @@ export const Dashboard = () => {
             </Box>
 
             <Box w={"full"} mb="12px">
-                <Text fontSize="14px">Total berdasarkan kategori</Text>
+                <Text fontSize="14px" color="gray.600">Total berdasarkan kategori</Text>
             </Box>
             <Box w={"full"} height={"40vh"} mb="8px">
                <PieChart />
