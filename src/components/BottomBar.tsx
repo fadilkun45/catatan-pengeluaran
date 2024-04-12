@@ -1,15 +1,24 @@
-import { Container, HStack, Icon, Text, VStack } from '@chakra-ui/react'
+import { Container, HStack, Icon, Text, VStack, useDisclosure } from '@chakra-ui/react'
 import { FiBookmark, FiList, FiMenu, FiPlus } from 'react-icons/fi'
 import { HiHome } from 'react-icons/hi'
 import { useNavigate } from 'react-router-dom'
+import {  } from "@chakra-ui/react"
+import { AddPengeluaranLog } from '../Pages/AddPengeluaranLog/AddpengeluaranLog'
+import { CgProfile } from 'react-icons/cg'
 
 
 export const BottomBar = () => {
+    const { isOpen:addModal, onOpen:addModalOpen, onClose:addModalClose } = useDisclosure()
 
     const navigate = useNavigate()
 
+
+
     return (
-        <Container px="0" display="flex" boxShadow="-1px -1px 9px 0px rgba(0,0,0,0.29)" position="fixed" background="#FFFF" bottom="0" zIndex="1" >
+       <>
+      {addModal && <AddPengeluaranLog modalClose={addModalClose} modalOpen={addModal} />} 
+
+       <Container px="0" display="flex" boxShadow="-1px -1px 9px 0px rgba(0,0,0,0.29)" position="fixed" background="#FFFF" bottom="0" zIndex="1" >
             <HStack w={"full"}>
                 <VStack  w={"5xl"} onClick={() => navigate("/")} color={window.location.pathname === "/" ? "white" : "green.400"} background={window.location.pathname === "/" ? "green.400" : ""} py="2" px="3">
                     <Icon h="8" w="8" as={HiHome} />
@@ -22,21 +31,21 @@ export const BottomBar = () => {
                 </VStack>
 
 
-                <VStack w={{'lg': "5xl", 'xl': 'sm'}}  marginTop="-36px" mx="6px"  backgroundColor="green.400" rounded="full">
+                <VStack w={{'lg': "5xl", 'xl': 'sm'}} onClick={addModalOpen}  marginTop="-36px" mx="6px"  backgroundColor="green.400" rounded="full">
                     <Icon h="16 " w="16 " as={FiPlus} color="white"/>
                 </VStack>
 
 
 
-                <VStack w={"5xl"} py="2" px="3" color={window.location.pathname === "/log" ? "white" : "green.400"} background={window.location.pathname === "/log" ? "green.400" : ""}>
+                <VStack w={"5xl"} py="2" px="3"  onClick={() => navigate("/log-pengeluaran")}  color={window.location.pathname === "/log-pengeluaran" ? "white" : "green.400"} background={window.location.pathname === "/log-pengeluaran" ? "green.400" : ""}>
                     <Icon h="8" w="8" as={FiBookmark} />
                     <Text fontSize="12px">Log</Text>
                 </VStack>
 
 
 
-                <VStack w={"5xl"} py="2" px="3" color={window.location.pathname === "/profile" ? "white" : "green.400"} background={window.location.pathname === "/profile" ? "green.400" : ""}>
-                    <Icon h="8" w="8" as={FiMenu} />
+                <VStack w={"5xl"} py="2" onClick={() => navigate("/profile")}  px="3" color={window.location.pathname === "/profile" ? "white" : "green.400"} background={window.location.pathname === "/profile" ? "green.400" : ""}>
+                    <Icon h="8" w="8" as={CgProfile} />
                     <Text fontSize="12px">Profile</Text>
                 </VStack>
 
@@ -44,5 +53,6 @@ export const BottomBar = () => {
 
 
         </Container>
+       </>
     )
 }

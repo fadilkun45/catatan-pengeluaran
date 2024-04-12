@@ -3,7 +3,6 @@ import LineChart from '../../components/LineChart'
 import PieChart from "../../components/PieChart"
 
 export const Dashboard = () => {
-    console.log(import.meta.env.VITE_REACT_APP_TEST)
     return (
         <VStack w={"full"} >
             <Box w={"full"} mb="12px">
