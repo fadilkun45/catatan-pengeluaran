@@ -31,7 +31,7 @@ export const BottomBar = () => {
                 </VStack>
 
 
-                <VStack w={{'lg': "5xl", 'xl': 'sm'}} onClick={addModalOpen}  marginTop="-36px" mx="6px"  backgroundColor="green.400" rounded="full">
+                <VStack  onClick={addModalOpen}  marginTop="-36px"  backgroundColor="green.400" rounded="full">
                     <Icon h="16 " w="16 " as={FiPlus} color="white"/>
                 </VStack>
 

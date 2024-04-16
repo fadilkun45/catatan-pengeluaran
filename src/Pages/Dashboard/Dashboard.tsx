@@ -1,8 +1,16 @@
 import { Box, Select, Text, VStack } from "@chakra-ui/react"
 import LineChart from '../../components/LineChart'
 import PieChart from "../../components/PieChart"
+import { useEffect, useState } from "react"
 
 export const Dashboard = () => {
+    const [isrendered, setIsrendered] = useState(false)
+
+    useEffect(() => {
+       setTimeout(() =>  setIsrendered(true), 1000)
+    },[])
+
+
     return (
         <VStack w={"full"} >
             <Box w={"full"} mb="12px">
@@ -10,7 +18,7 @@ export const Dashboard = () => {
                 <Text fontSize="25px" fontWeight="bold" color="gray.600" >Rp. 80.000</Text>
             </Box>
             <Box w={"full"} mb="12px">
-                <Text fontSize="14px" color="gray.600">rentang waktu berdasarkan</Text>
+                <Text fontSize="18px" color="gray.600">rentang waktu berdasarkan</Text>
                 <Select fontSize="14px" mt={"8px"} h="29px">
                 <option value='option3'>1 minggu</option>
                 <option value='option3'>1 bulan</option>
@@ -20,14 +28,14 @@ export const Dashboard = () => {
             </Box>
 
             <Box w={"90%"} height={"50vh"} mb="8px">
-               <LineChart />
+               {isrendered ? <LineChart /> : null } 
             </Box>
 
             <Box w={"full"} mb="12px">
-                <Text fontSize="14px" color="gray.600">Total berdasarkan kategori</Text>
+                <Text fontSize="18px" color="gray.600">Total berdasarkan kategori</Text>
             </Box>
-            <Box w={"90%"} height={"50vh"} mb="8px">
-               <PieChart />
+            <Box w={"100%"} height={"65vh"} mb="8px">
+            {isrendered ? <PieChart /> : null } 
             </Box>
 
         </VStack>
