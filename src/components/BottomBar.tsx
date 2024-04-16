@@ -20,31 +20,31 @@ export const BottomBar = () => {
 
        <Container px="0" display="flex" boxShadow="-1px -1px 9px 0px rgba(0,0,0,0.29)" position="fixed" background="#FFFF" bottom="0" zIndex="1" >
             <HStack w={"full"}>
-                <VStack  w={"5xl"} onClick={() => navigate("/")} color={window.location.pathname === "/" ? "white" : "green.400"} background={window.location.pathname === "/" ? "green.400" : ""} py="2" px="3">
+                <VStack  w={"5xl"} cursor="pointer" onClick={() => navigate("/dashboard")} color={window.location.pathname === "/dashboard" ? "white" : "green.400"} background={window.location.pathname === "/dashboard" ? "green.400" : ""} py="2" px="3">
                     <Icon h="8" w="8" as={HiHome} />
                     <Text fontSize="12px">Home</Text>
                 </VStack>
 
-                <VStack w={"5xl"} py="2" px="3" onClick={() => navigate("/kategori")} color={window.location.pathname === "/kategori" ? "white" : "green.400"} background={window.location.pathname === "/kategori" ? "green.400" : ""}>
+                <VStack w={"5xl"} py="2" cursor="pointer" px="3" onClick={() => navigate("/kategori")} color={window.location.pathname === "/kategori" ? "white" : "green.400"} background={window.location.pathname === "/kategori" ? "green.400" : ""}>
                     <Icon h="8" w="8" as={FiList} />
                     <Text fontSize="12px">kategori</Text>
                 </VStack>
 
 
-                <VStack  onClick={addModalOpen}  marginTop="-36px"  backgroundColor="green.400" rounded="full">
+                <VStack  onClick={addModalOpen} cursor="pointer" marginTop="-36px"  backgroundColor="green.400" rounded="full">
                     <Icon h="16 " w="16 " as={FiPlus} color="white"/>
                 </VStack>
 
 
 
-                <VStack w={"5xl"} py="2" px="3"  onClick={() => navigate("/log-pengeluaran")}  color={window.location.pathname === "/log-pengeluaran" ? "white" : "green.400"} background={window.location.pathname === "/log-pengeluaran" ? "green.400" : ""}>
+                <VStack w={"5xl"} py="2" px="3" cursor="pointer" onClick={() => navigate("/log-pengeluaran")}  color={window.location.pathname === "/log-pengeluaran" ? "white" : "green.400"} background={window.location.pathname === "/log-pengeluaran" ? "green.400" : ""}>
                     <Icon h="8" w="8" as={FiBookmark} />
                     <Text fontSize="12px">Log</Text>
                 </VStack>
 
 
 
-                <VStack w={"5xl"} py="2" onClick={() => navigate("/profile")}  px="3" color={window.location.pathname === "/profile" ? "white" : "green.400"} background={window.location.pathname === "/profile" ? "green.400" : ""}>
+                <VStack w={"5xl"} py="2" cursor="pointer" onClick={() => navigate("/profile")}  px="3" color={window.location.pathname === "/profile" ? "white" : "green.400"} background={window.location.pathname === "/profile" ? "green.400" : ""}>
                     <Icon h="8" w="8" as={CgProfile} />
                     <Text fontSize="12px">Profile</Text>
                 </VStack>
