@@ -57,7 +57,6 @@ const LineChart = () => {
                         }}
                     >
 
-                        {console.log(data)}
                         <div> {data.date} : {HelperFunction.FormatToRupiah(data.total)} </div>
                     </div>
                 )
