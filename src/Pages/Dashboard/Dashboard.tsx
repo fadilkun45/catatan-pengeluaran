@@ -26,7 +26,7 @@ export const Dashboard = () => {
             <Box w={"full"} mb="12px">
                 <Text fontSize="14px" color="gray.600">Total berdasarkan kategori</Text>
             </Box>
-            <Box w={"full"} height={"40vh"} mb="8px">
+            <Box w={"90%"} height={"50vh"} mb="8px">
                <PieChart />
             </Box>
 
