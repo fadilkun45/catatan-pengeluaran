@@ -2,14 +2,17 @@ import { Box, Select, Text, VStack } from "@chakra-ui/react"
 import LineChart from '../../components/LineChart'
 import PieChart from "../../components/PieChart"
 import { useEffect, useState } from "react"
+import { useLoadingStore } from "../../store/Loading"
 
 export const Dashboard = () => {
     const [isrendered, setIsrendered] = useState(false)
+    const setLoading = useLoadingStore((state) => state.setLoading)
+
 
     useEffect(() => {
-       setTimeout(() =>  setIsrendered(true), 1000)
+        setLoading(true)
+        setTimeout(() =>  {setIsrendered(true);setLoading(false)}, 1000)
     },[])
-
 
     return (
         <VStack w={"full"} >
