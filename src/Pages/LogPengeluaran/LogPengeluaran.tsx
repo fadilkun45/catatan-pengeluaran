@@ -1,7 +1,8 @@
-import { Badge, Box, Button, Divider, HStack, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Spacer, Text, Textarea, VStack, useDisclosure } from "@chakra-ui/react"
+import { Badge, Box, Button, Divider, HStack, Icon, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Spacer, Text, Textarea, VStack, useDisclosure } from "@chakra-ui/react"
 import { useState } from "react"
 import ReactSelect from "react-select"
 import LineChart from "../../components/LineChart"
+import { BiTrash, BiX } from "react-icons/bi"
 
 const LogPengeluaran = () => {
 
@@ -86,7 +87,10 @@ const LogPengeluaran = () => {
                             <HStack w="full">
                                 <Badge px="3" py="3px" rounded="full" >Jajan</Badge>
                                 <Badge px="3" py="3px" rounded="full" >Makanan</Badge>
+                                <Spacer />
+                                <Button size="sm"  rounded="6px" h="30px"><Icon as={BiX} /></Button>
                             </HStack>
+
                         </VStack>
 
                         <VStack w="full" alignItems="start" px="20px" py="12px" borderRadius="8px" background="green.500" color="white">
@@ -98,6 +102,8 @@ const LogPengeluaran = () => {
                             <HStack w="full">
                                 <Badge px="3" py="3px" rounded="full" >Jajan</Badge>
                                 <Badge px="3" py="3px" rounded="full" >Minuman</Badge>
+                                <Spacer />
+                                <Button size="sm"  rounded="6px" h="30px"><Icon as={BiX} /></Button>
                             </HStack>
                         </VStack>
 

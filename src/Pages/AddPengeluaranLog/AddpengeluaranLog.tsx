@@ -78,6 +78,8 @@ export const AddPengeluaranLog = ({ modalOpen, modalClose }: modalAlertProps) =>
                             <Input fontSize="sm" name="" mb="8px" w="full" />
                             <Text w="full" mb="4px">Total pengeluaran</Text>
                             <Input fontSize="sm" name="" mb="8px" w="full" />
+                            <Text w="full" mb="4px">Tanggal</Text>
+                            <Input fontSize="sm" type="date" name="" mb="8px" w="full" />
 
                             <Text w="full" mb="4px">Kategori</Text>
                             <Select value={dropdownVal} fontSize="14px" placeholder="pilih kategori" onChange={(e) => handleAddkategori(e)}>
@@ -87,8 +89,8 @@ export const AddPengeluaranLog = ({ modalOpen, modalClose }: modalAlertProps) =>
                             </Select>
 
                             <VStack w="full" mt="8px">
-                                {kategoriData.length > 0 ? <Text fontWeight="bold">List Kategori</Text> : ""}
-                                {
+                                {/* {kategoriData.length > 0 ? <Text fontWeight="bold">List Kategori</Text> : ""} */}
+                                {/* {
                                     kategoriData.map((x) => (
                                         <HStack bg="green.500" mt="8px" px="4" py='2' borderRadius="5" textColor="white" w="full">
                                             <VStack w="50%" >
@@ -100,7 +102,7 @@ export const AddPengeluaranLog = ({ modalOpen, modalClose }: modalAlertProps) =>
                                             <Icon color="white" fontSize="22px" onClick={(e) => handleDeleteKategori(x)} as={FiX} />
                                         </HStack>
                                     ))
-                                }
+                                } */}
                             </VStack>
 
                         </VStack>

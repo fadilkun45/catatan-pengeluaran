@@ -43,7 +43,7 @@ const PieChart = () => {
                 )
             }} 
             padAngle={0.7}
-            cornerRadius={3}
+            cornerRadius={1}
             activeOuterRadiusOffset={8}
             colors={[theme.colors.green["300"], theme.colors.green["400"], theme.colors.green["500"], theme.colors.green["600"]]}
 
@@ -72,31 +72,30 @@ const PieChart = () => {
                     ]
                 ]
             }}
-        // legends={[
-        //     {
-        //         anchor: 'bottom',
-        //         direction: 'row',
-        //         justify: false,
-        //         translateX: 0,
-        //         translateY: 56,
-        //         itemsSpacing: 0,
-        //         itemWidth: 100,
-        //         itemHeight: 18,
-        //         itemTextColor: '#999',
-        //         itemDirection: 'left-to-right',
-        //         itemOpacity: 1,
-        //         symbolSize: 18,
-        //         symbolShape: 'circle',
-        //         effects: [
-        //             {
-        //                 on: 'hover',
-        //                 style: {
-        //                     itemTextColor: '#000'
-        //                 }
-        //             }
-        //         ]
-        //     }
-        // ]}
+        legends={[
+            {
+                anchor: 'bottom',
+                direction: 'column',
+                justify: false ,
+                translateX: -130,
+                translateY: 60,
+                itemsSpacing: 4,
+                itemWidth: 100,
+                itemHeight: 18,
+                itemTextColor: '#999',
+                itemOpacity: 1,
+                symbolSize: 18,
+                symbolShape: 'circle',
+                // effects: [
+                //     {
+                //         on: 'hover',
+                //         style: {
+                //             itemTextColor: '#000'
+                //         }
+                //     }
+                // ]
+            }
+        ]}
         />
     )
 }
