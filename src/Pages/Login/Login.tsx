@@ -14,8 +14,8 @@ const Login = () => {
               </Stack>
             </Stack>
           </Flex>
-          <Flex background="green.400" display={{"base": "none", "lg": "flex"}} flex={1}>
-            <Text color="#FFF" style={{'transform': 'rotate(90deg)'}} fontSize="3xl" fontWeight="bold">App pencatat Pengeluaran</Text>
+          <Flex background="green.400" display="flex" justifyContent="center" alignItems="center" flex={1}>
+            <Text color="#FFF" fontSize="3xl" fontWeight="bold">App pencatat Pengeluaran</Text>
           </Flex>
         </Stack>
       )

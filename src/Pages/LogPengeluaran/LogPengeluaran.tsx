@@ -39,19 +39,17 @@ const LogPengeluaran = () => {
                     <Text w="full" fontSize="lg" fontWeight="bold">Kategori</Text>
                     <Box w="full">
                         <ReactSelect
-                            isMulti
                             name="colors"
                             options={kategori}
-                            className="basic-multi-select"
                             classNamePrefix="select"
                             onChange={handleSelectKategori}
                         />
                     </Box>
                 </VStack>
 
-                <Box w={"90%"} height={"50vh"} mb="8px">
+                {/* <Box w={"90%"} height={"50vh"} mb="8px">
                     <LineChart />
-                </Box>
+                </Box> */}
 
                     <HStack w="full">
                         <VStack background="green.400" color="white" px="6px" borderRadius="6px" py="6px">
