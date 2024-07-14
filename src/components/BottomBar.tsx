@@ -20,7 +20,7 @@ export const BottomBar = () => {
 
        <Container px="0" display="flex" boxShadow="-1px -1px 9px 0px rgba(0,0,0,0.29)" position="fixed" background="#FFFF" bottom="0" zIndex="1" >
             <HStack w={"full"}>
-                <VStack  w={"5xl"} cursor="pointer" onClick={() => navigate("/dashboard")} color={window.location.pathname === "/dashboard" ? "white" : "green.400"} background={window.location.pathname === "/dashboard" ? "green.400" : ""} py="2" px="3">
+                <VStack  w={"5xl"} cursor="pointer" onClick={() => navigate("/")} color={window.location.pathname === "/dashboard" ? "white" : "green.400"} background={window.location.pathname === "/dashboard" ? "green.400" : ""} py="2" px="3">
                     <Icon h="8" w="8" as={HiHome} />
                     <Text fontSize="12px">Home</Text>
                 </VStack>

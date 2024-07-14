@@ -95,7 +95,9 @@ const Profile = () => {
                         <Button colorScheme='gray' mr={3} onClick={modalConfirmDownloadClose}>
                             Batal
                         </Button>
-                        <Button colorScheme="green" onClick={() => handleOnInstall()}>Download</Button>
+                       
+                          <Button colorScheme="green" onClick={(evt) => handleOnInstall(evt)}>Download</Button>
+                       
                     </ModalFooter>
                 </ModalContent>
             </Modal>
@@ -109,12 +111,14 @@ const Profile = () => {
                 <Divider />
                 <VStack w="full">
 
-
-                    <HStack w="full" px="12px" py="6px" onClick={modalConfirmDownloadOpen} cursor="pointer">
+                    {
+                        supportsPWA ?      <HStack w="full" px="12px" py="6px" onClick={modalConfirmDownloadOpen} cursor="pointer">
                         <Text fontSize="sm">Download</Text>
                         <Spacer />
                         <Icon fontSize="18px" as={GoDownload} />
-                    </HStack>
+                    </HStack> : ""
+                    }
+               
                     <Divider />
 
 
@@ -126,12 +130,12 @@ const Profile = () => {
                     <Divider /> */}
 
 
-                    <HStack w="full" px="12px" cursor="pointer" py="6px" onClick={modalConfirmLogoutOpen}>
+                    {/* <HStack w="full" px="12px" cursor="pointer" py="6px" onClick={modalConfirmLogoutOpen}>
                         <Text fontSize="sm">Logout</Text>
                         <Spacer />
                         <Icon fontSize="18px" as={IoExitOutline} />
                     </HStack>
-                    <Divider />
+                    <Divider /> */}
 
 
                     <Text mt="40vh">2024 &copy; Faldi Ramadhan</Text>
