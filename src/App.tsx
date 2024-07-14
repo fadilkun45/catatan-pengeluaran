@@ -4,7 +4,7 @@ import { Dashboard } from './Pages/Dashboard/Dashboard'
 import Kategori from './Pages/Kategori/Kategori'
 import KategoriDetail from './Pages/KategoriDetail/KategoriDetail'
 import LogPengeluaran from './Pages/LogPengeluaran/LogPengeluaran'
-import Profile from './Pages/Profile/Profile'
+import Options from './Pages/Options/Options'
 
 function App() {
 
@@ -16,7 +16,7 @@ function App() {
         <Route path='/kategori' element={<Layout><Kategori /></Layout>} />
         <Route path='/kategori-detail' element={<Layout><KategoriDetail /></Layout>} />
         <Route path='/log-pengeluaran' element={<Layout><LogPengeluaran /></Layout>} />
-        <Route path='/profile' element={<Layout><Profile /></Layout>} />
+        <Route path='/profile' element={<Layout><Options /></Layout>} />
       </Routes>
     </BrowserRouter>
   )

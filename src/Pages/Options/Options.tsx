@@ -8,7 +8,7 @@ import { GoDownload } from 'react-icons/go'
 import { ModalAlert } from "../../components/ModalAlert"
 import { useEffect, useState } from "react"
 
-const Profile = () => {
+const Options = () => {
     const { isOpen: modalConfirmLogout, onOpen: modalConfirmLogoutOpen, onClose: modalConfirmLogoutClose } = useDisclosure()
     const { isOpen: modalConfirmDownload, onOpen: modalConfirmDownloadOpen, onClose: modalConfirmDownloadClose } = useDisclosure()
     const { isOpen: modalAlertDownload, onOpen: modalAlertDownloadOpen, onClose: modalAlertDownloadClose } = useDisclosure()
@@ -146,4 +146,4 @@ const Profile = () => {
     )
 }
 
-export default Profile
+export default Options
