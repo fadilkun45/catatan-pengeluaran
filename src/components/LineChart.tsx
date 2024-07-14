@@ -1,35 +1,37 @@
 import { ResponsiveBar } from '@nivo/bar'
 import { HelperFunction } from '../lib/HelperFunc'
+import { PengeluaranLogChartType } from '../Types/ChartPengeluaranLog'
+import dayjs from 'dayjs'
 
-const data = [
-    {
-        "date": "januari",
-        "total": 120000,
-    },
-    {
-        "date": "febuari",
-        "total": 100000,
-    },
-    {
-        "date": "maret",
-        "total": 30000,
-    },
-    {
-        "date": "april",
-        "total": 50000,
-    },
-    {
-        "date": "mei",
-        "total": 130000,
-    },
-    {
-        "date": "juni",
-        "total": 125000,
-    },
-]
+// const data = [
+//     {
+//         "date": "januari",
+//         "total": 120000,
+//     },
+//     {
+//         "date": "febuari",
+//         "total": 100000,
+//     },
+//     {
+//         "date": "maret",
+//         "total": 30000,
+//     },
+//     {
+//         "date": "april",
+//         "total": 50000,
+//     },
+//     {
+//         "date": "mei",
+//         "total": 130000,
+//     },
+//     {
+//         "date": "juni",
+//         "total": 125000,
+//     },
+// ]
 
 
-const LineChart = () => {
+const LineChart = ({data}: {data: PengeluaranLogChartType[]}) => {
 
 
     return (
@@ -57,7 +59,7 @@ const LineChart = () => {
                         }}
                     >
 
-                        <div> {data.date} : {HelperFunction.FormatToRupiah(data.total)} </div>
+                        <div> {dayjs(data.date).format("DD,MMMM")} : {HelperFunction.FormatToRupiah(data.total as number)} </div>
                     </div>
                 )
             }} 

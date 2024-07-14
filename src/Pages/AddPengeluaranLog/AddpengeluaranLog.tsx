@@ -1,7 +1,9 @@
-import { Badge, Box, Button, Divider, HStack, Icon, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, Spacer, Text, Textarea, VStack, useDisclosure, useToast } from "@chakra-ui/react"
-import { ModalAlert } from "../../components/ModalAlert"
-import { ChangeEvent, useState } from "react"
-import { FiTrash, FiX } from "react-icons/fi"
+import { Button, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Text,  VStack, useDisclosure, useToast } from "@chakra-ui/react"
+import React, {  useState } from "react"
+import { PengeluaranLogType } from "../../Types/PengeluaranLog"
+import { db } from "../../services/db/db"
+import dayjs from "dayjs"
+import { HelperFunction } from "../../lib/HelperFunc"
 
 
 interface modalAlertProps {
@@ -11,57 +13,52 @@ interface modalAlertProps {
 
 export const AddPengeluaranLog = ({ modalOpen, modalClose }: modalAlertProps) => {
     const toast = useToast()
-    const { isOpen: modalSuccessAdd, onOpen: modalSuccessAddOpen, onClose: modalSuccessAddClose } = useDisclosure()
     const { isOpen: modalConfirm, onOpen: modalConfirmOpen, onClose: modalConfirmClose } = useDisclosure()
-    const [dropdownVal, setDropdownVal] = useState('')
-    const [kategoriData, setKategoriData] = useState<string[]>([])
+    const [newData, setNewData] = useState<PengeluaranLogType>({
+        amount: 0,
+        createdAt: dayjs().format("YYYY-MM-DD"),
+        name: '',
+    })
 
-    const handleAddkategori = (e: React.ChangeEvent<HTMLSelectElement>) => {
 
-        if (kategoriData.filter((x) => x === e.target.value).length !== 0) {
-            setDropdownVal('')
+    const BeforeAdd = () => {
+        modalConfirmOpen()
+    }
+
+    const handleAdd = () => {
+        try {
+            void db.pengeluaranLogs.add(newData)
+            modalConfirmClose()
+            modalClose()
             toast({
-                title: "Kategori sudah ditambahkan",
-                colorScheme: "yellow",
-                position: "top-right"
+                'colorScheme': "green",
+                'title': "tambah log pengeluaran berhasil",
+                'position': 'top-right'
             })
-            return
+        } catch (error) {
+            toast({
+                'colorScheme': "red",
+                'title': "error log tambah pengeluaran",
+                'position': 'top-right'
+            })
         }
-
-        setKategoriData([
-            ...kategoriData, e.target.value
-        ])
-        setDropdownVal('')
     }
-
-    const handleDeleteKategori = (e: string) => {
-        setKategoriData(
-            kategoriData.filter((x) => e !== x)
-        )
-        setDropdownVal('')
-    }
-
-
-    console.log("kategori", kategoriData)
-
 
     return (
         <>
-            <ModalAlert title="Success" subtitle="Tambah catatan pengeluaran berhasil" modalOpen={modalSuccessAdd} modalClose={() => {modalSuccessAddClose();modalClose()}} />
-
             <Modal isOpen={modalConfirm} onClose={() => modalConfirmClose()}>
                 <ModalOverlay />
                 <ModalContent>
-                    <ModalHeader>Tambah Kategori</ModalHeader>
+                    <ModalHeader>Tambah log pengeluaran</ModalHeader>
                     <ModalCloseButton />
                     <ModalBody>
-                        <Text>Anda yakin ingin menyimpan kategori berikut ?</Text>
+                        <Text>Anda yakin ingin menyimpan log pengeluaran berikut ?</Text>
                     </ModalBody>
                     <ModalFooter>
                         <Button colorScheme='gray' mr={3} onClick={() => modalConfirmClose()}>
                             Tidak
                         </Button>
-                        <Button colorScheme="green" onClick={() => { modalConfirmClose();modalSuccessAddOpen()}}>Ya</Button>
+                        <Button colorScheme="green" onClick={() => void handleAdd()}>Ya</Button>
                     </ModalFooter>
                 </ModalContent>
             </Modal>
@@ -75,42 +72,18 @@ export const AddPengeluaranLog = ({ modalOpen, modalClose }: modalAlertProps) =>
                     <ModalBody>
                         <VStack w="full">
                             <Text w="full" mb="4px">Nama Pengeluaran</Text>
-                            <Input fontSize="sm" name="" mb="8px" w="full" />
+                            <Input fontSize="sm"   onChange={(v: React.ChangeEvent<HTMLInputElement>) => setNewData({...newData, "name": v.target.value})}  mb="8px" w="full" />
                             <Text w="full" mb="4px">Total pengeluaran</Text>
-                            <Input fontSize="sm" name="" mb="8px" w="full" />
+                            <Input fontSize="sm" value={HelperFunction.FormatToRupiah2(newData.amount)}  onChange={(v: React.ChangeEvent<HTMLInputElement>) => setNewData({...newData, "amount": Number.isNaN(parseInt(v.target.value)) ? 0 : parseInt(HelperFunction.onlyNumber(v.target.value))})} mb="8px" w="full" />
                             <Text w="full" mb="4px">Tanggal</Text>
-                            <Input fontSize="sm" type="date" name="" mb="8px" w="full" />
-
-                            <Text w="full" mb="4px">Kategori</Text>
-                            <Select value={dropdownVal} fontSize="14px" placeholder="pilih kategori" onChange={(e) => handleAddkategori(e)}>
-                                <option value='makanan'>Makanan</option>
-                                <option value='minuman'>minuman</option>
-                                <option value='jajanan' >jajanan</option>
-                            </Select>
-
-                            <VStack w="full" mt="8px">
-                                {/* {kategoriData.length > 0 ? <Text fontWeight="bold">List Kategori</Text> : ""} */}
-                                {/* {
-                                    kategoriData.map((x) => (
-                                        <HStack bg="green.500" mt="8px" px="4" py='2' borderRadius="5" textColor="white" w="full">
-                                            <VStack w="50%" >
-                                                <Text w="full" fontSize={{ 'base': "12px", 'md': "sm" }} whiteSpace="nowrap">Pengeluaran hari ini di kategori</Text>
-                                                <Text w="full" fontSize={{ 'base': "15px", 'md': "lg" }} mt="-8px" fontWeight="bold" >{x}</Text>
-                                                <Text w="full" fontSize={{ 'base': "18px", 'md': "xl" }} mt="-8px" whiteSpace="nowrap">Rp. 80.000</Text>
-                                            </VStack>
-                                            <Spacer />
-                                            <Icon color="white" fontSize="22px" onClick={(e) => handleDeleteKategori(x)} as={FiX} />
-                                        </HStack>
-                                    ))
-                                } */}
-                            </VStack>
+                            <Input fontSize="sm" value={newData.createdAt} onChange={(v: React.ChangeEvent<HTMLInputElement>) => setNewData({...newData, "createdAt": v.target.value})} type="date" mb="8px" w="full" />
 
                         </VStack>
                     </ModalBody>
 
                     <ModalFooter>
                         <Button colorScheme="gray" mr="12px" onClick={() => modalClose()}>tutup</Button>
-                        <Button colorScheme="green" onClick={() => {modalConfirmOpen()}}>Submit</Button>
+                        <Button colorScheme="green" onClick={BeforeAdd} isDisabled={!newData.amount || !newData.name ? true : false}>Submit</Button>
                     </ModalFooter>
                 </ModalContent>
             </Modal>

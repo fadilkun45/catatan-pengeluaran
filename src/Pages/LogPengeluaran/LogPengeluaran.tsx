@@ -1,21 +1,70 @@
-import { Badge, Box, Button, Divider, HStack, Icon, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Spacer, Text, Textarea, VStack, useDisclosure } from "@chakra-ui/react"
-import { useState } from "react"
-import ReactSelect from "react-select"
-import LineChart from "../../components/LineChart"
+import { Badge, Box, Button, Divider, HStack, Icon, Input, Spacer, Text, Textarea, VStack, useDisclosure } from "@chakra-ui/react"
+import { useEffect, useState } from "react"
 import { BiTrash, BiX } from "react-icons/bi"
+import { PengeluaranLogType } from "../../Types/PengeluaranLog"
+import { useLiveQuery } from "dexie-react-hooks"
+import { db } from "../../services/db/db"
+import dayjs from "dayjs"
+import { PengeluaranListLogType } from "../../Types/PengeluaranListLog"
+import { HelperFunction } from "../../lib/HelperFunc"
+import { DetailAllLogType } from "../../Types/DetailAllLog"
+import { DetailLog } from "../../components/DetailLog"
 
 const LogPengeluaran = () => {
+    const [date, setDate] = useState<{
+        firstDate: string,
+        lastDate: string
+    }>({
+        firstDate: dayjs().format("YYYY-MM-DD"),
+        lastDate: dayjs().format("YYYY-MM-DD")
+    })
+    const [logTrx, setLogTrx] = useState<PengeluaranListLogType[]>([])
+    const [informationDetail, setInformationDetail] = useState<DetailAllLogType>({
+        totalLog: 0,
+        totalAmount: 0
+    })
 
-    const [kategori, setKategori] = useState([
-        { value: 1, label: "jajan" },
-        { value: 2, label: "makanan" },
-        { value: 3, label: "minuman" },
+    const items = useLiveQuery(() => {
 
-    ])
+        const result = db.pengeluaranLogs.where('createdAt').between(date.firstDate, date.lastDate, true, true).toArray()
+        return result
+    },
+        [date.firstDate, date.lastDate])
 
-    const handleSelectKategori = (evt: any) => {
-        console.log("kat", evt)
-    }
+    useEffect(() => {
+
+        const temp1: PengeluaranListLogType[] = []
+        let temp2: DetailAllLogType = {
+            totalLog: 0,
+            totalAmount: 0,
+        }
+
+        items?.map((y) => {
+
+            temp2 = {
+                totalLog: items.length,
+                totalAmount: temp2.totalAmount + y.amount
+            }
+
+            if (temp1.filter((x) => x.date === y.createdAt).length === 0) {
+                temp1.push({
+                    date: y.createdAt,
+                    amount: y.amount,
+                    data: items?.filter((t) => t.createdAt === y.createdAt)
+                })
+            } else {
+                const index = temp1.findIndex(item => item.date === y.createdAt);
+                const existData = temp1[index]
+                existData.amount += y.amount
+                temp1[index] = existData
+            }
+        })
+
+        setLogTrx(temp1)
+        setInformationDetail(temp2)
+
+    }, [items])
+
 
     return (
         <>
@@ -26,164 +75,56 @@ const LogPengeluaran = () => {
                     <HStack w="full" mb="13px">
                         <Box w="49%" >
                             <Text mb="4px" fontSize="sm">Tanggal Awal</Text>
-                            <Input type="date" />
+                            <Input type="date" value={date.firstDate} onChange={(v: React.ChangeEvent<HTMLInputElement>) => setDate({ ...date, 'firstDate': v.target.value })} />
                         </Box>
                         <Box w="49%">
                             <Text mb="4px" fontSize="sm"> Tanggal Akhir</Text>
-                            <Input type="date" />
+                            <Input type="date" value={date.lastDate} onChange={(v: React.ChangeEvent<HTMLInputElement>) => setDate({ ...date, 'lastDate': v.target.value })} />
                         </Box>
                     </HStack>
                 </VStack>
 
-                <VStack w="full">
-                    <Text w="full" fontSize="lg" fontWeight="bold">Kategori</Text>
-                    <Box w="full">
-                        <ReactSelect
-                            name="colors"
-                            options={kategori}
-                            classNamePrefix="select"
-                            onChange={handleSelectKategori}
-                        />
-                    </Box>
-                </VStack>
-
-                {/* <Box w={"90%"} height={"50vh"} mb="8px">
-                    <LineChart />
-                </Box> */}
-
-                    <HStack w="full">
-                        <VStack background="green.400" color="white" px="6px" borderRadius="6px" py="6px">
-                            <Text fontSize="29px" fontWeight="bold">6111</Text>
-                            <Text fontSize="md" >Catatan</Text>
-                        </VStack>
-                        <VStack background="green.400"  flex="2" color="white" px="6px" borderRadius="6px" py="6px">
-                            <Text w="95%" fontSize="29px" fontWeight="bold">75.000</Text>
-                            <Text  w="95%" fontSize="md" >Total transaksi</Text>
-                        </VStack>
-                    </HStack>
-
-                <VStack w="full" mt="10px">
-                    <Divider />
-                    <VStack mb="10px" w="full">
-                        <HStack mb="9px" w="full" alignItems="start" px="20px" py="6px" borderRadius="8px" background="green.400" color="white">
-                            <Box >
-                                <Text fontSize="29px" fontWeight="bold">20</Text>
-                                <Text fontSize="16px" >Januari, 2024</Text>
-                            </Box>
-                            <Spacer />
-                            <Box >
-                                <Text fontSize="20px" fontWeight="bold">Rp.25.000</Text>
-                            </Box>
-                        </HStack>
-
-                        <VStack w="full" alignItems="start" px="20px" py="12px" borderRadius="8px" background="green.500" color="white">
-                            <HStack w="full">
-                                <Text fontSize={"16px"}>jajan gorengan</Text>
-                                <Spacer />
-                                <Text fontSize={"16px"}>Rp.20.000</Text>
-                            </HStack>
-                            <HStack w="full">
-                                <Badge px="3" py="3px" rounded="full" >Jajan</Badge>
-                                <Badge px="3" py="3px" rounded="full" >Makanan</Badge>
-                                <Spacer />
-                                <Button size="sm"  rounded="6px" h="30px"><Icon as={BiX} /></Button>
-                            </HStack>
-
-                        </VStack>
-
-                        <VStack w="full" alignItems="start" px="20px" py="12px" borderRadius="8px" background="green.500" color="white">
-                            <HStack w="full">
-                                <Text fontSize={"16px"}>Beli air</Text>
-                                <Spacer />
-                                <Text fontSize={"16px"}>Rp.5.000</Text>
-                            </HStack>
-                            <HStack w="full">
-                                <Badge px="3" py="3px" rounded="full" >Jajan</Badge>
-                                <Badge px="3" py="3px" rounded="full" >Minuman</Badge>
-                                <Spacer />
-                                <Button size="sm"  rounded="6px" h="30px"><Icon as={BiX} /></Button>
-                            </HStack>
-                        </VStack>
-
+                <HStack w="full">
+                    <VStack background="green.400" color="white" px="6px" borderRadius="6px" py="6px">
+                        <Text fontSize="29px" fontWeight="bold">{informationDetail?.totalLog}</Text>
+                        <Text fontSize="md" >Catatan</Text>
                     </VStack>
-
-                    <VStack mb="10px" w="full">
-                        <HStack mb="9px" w="full" alignItems="start" px="20px" py="6px" borderRadius="8px" background="green.400" color="white">
-                            <Box >
-                                <Text fontSize="29px" fontWeight="bold">19</Text>
-                                <Text fontSize="16px" >Januari, 2024</Text>
-                            </Box>
-                            <Spacer />
-                            <Box >
-                                <Text fontSize="20px" fontWeight="bold">Rp.25.000</Text>
-                            </Box>
-                        </HStack>
-
-                        <VStack w="full" alignItems="start" px="20px" py="12px" borderRadius="8px" background="green.500" color="white">
-                            <HStack w="full">
-                                <Text fontSize={"16px"}>jajan gorengan</Text>
-                                <Spacer />
-                                <Text fontSize={"16px"}>Rp.20.000</Text>
-                            </HStack>
-                            <HStack w="full">
-                                <Badge px="3" py="3px" rounded="full" >Jajan</Badge>
-                                <Badge px="3" py="3px" rounded="full" >Makanan</Badge>
-                            </HStack>
-                        </VStack>
-
-                        <VStack w="full" alignItems="start" px="20px" py="12px" borderRadius="8px" background="green.500" color="white">
-                            <HStack w="full">
-                                <Text fontSize={"16px"}>Beli air</Text>
-                                <Spacer />
-                                <Text fontSize={"16px"}>Rp.5.000</Text>
-                            </HStack>
-                            <HStack w="full">
-                                <Badge px="3" py="3px" rounded="full" >Jajan</Badge>
-                                <Badge px="3" py="3px" rounded="full" >Minuman</Badge>
-                            </HStack>
-                        </VStack>
-
+                    <VStack background="green.400" flex="2" color="white" px="6px" borderRadius="6px" py="6px">
+                        <Text w="95%" fontSize="29px" fontWeight="bold">{HelperFunction.FormatToRupiah(informationDetail?.totalAmount)}</Text>
+                        <Text w="95%" fontSize="md" >Total transaksi</Text>
                     </VStack>
+                </HStack>
 
-                    <VStack mb="10px" w="full">
-                        <HStack mb="9px" w="full" alignItems="start" px="20px" py="6px" borderRadius="8px" background="green.400" color="white">
-                            <Box >
-                                <Text fontSize="29px" fontWeight="bold">18</Text>
-                                <Text fontSize="16px" >Januari, 2024</Text>
-                            </Box>
-                            <Spacer />
-                            <Box >
-                                <Text fontSize="20px" fontWeight="bold">Rp.25.000</Text>
-                            </Box>
-                        </HStack>
+                {
+                    logTrx?.map((item, key) => (
+                        <VStack w="full" mt="10px" key={key}>
+                            <Divider />
 
-                        <VStack w="full" alignItems="start" px="20px" py="12px" borderRadius="8px" background="green.500" color="white">
-                            <HStack w="full">
-                                <Text fontSize={"16px"}>jajan gorengan</Text>
-                                <Spacer />
-                                <Text fontSize={"16px"}>Rp.20.000</Text>
-                            </HStack>
-                            <HStack w="full">
-                                <Badge px="3" py="3px" rounded="full" >Jajan</Badge>
-                                <Badge px="3" py="3px" rounded="full" >Makanan</Badge>
-                            </HStack>
+                            <VStack mb="10px" w="full">
+                                <HStack mb="9px" w="full" alignItems="start" px="20px" py="6px" borderRadius="8px" background="green.400" color="white">
+                                    <Box >
+                                        <Text fontSize="29px" fontWeight="bold">{dayjs(item?.date).format("DD")}</Text>
+                                        <Text fontSize="16px" >{dayjs(item?.date).format("MMMM, YYYY")}</Text>
+                                    </Box>
+                                    <Spacer />
+                                    <Box >
+                                        <Text fontSize="20px" fontWeight="bold">{HelperFunction.FormatToRupiah(item?.amount)}</Text>
+                                    </Box>
+                                </HStack>
+
+                                {
+                                    item?.data?.map((details) => (
+                                        <DetailLog  item={details}/>
+                                    ))
+                                }
+
+                            </VStack>
+
                         </VStack>
+                    ))
+                }
 
-                        <VStack w="full" alignItems="start" px="20px" py="12px" borderRadius="8px" background="green.500" color="white">
-                            <HStack w="full">
-                                <Text fontSize={"16px"}>Beli air</Text>
-                                <Spacer />
-                                <Text fontSize={"16px"}>Rp.5.000</Text>
-                            </HStack>
-                            <HStack w="full">
-                                <Badge px="3" py="3px" rounded="full" >Jajan</Badge>
-                                <Badge px="3" py="3px" rounded="full" >Minuman</Badge>
-                            </HStack>
-                        </VStack>
 
-                    </VStack>
-
-                </VStack>
 
             </VStack>
         </>
