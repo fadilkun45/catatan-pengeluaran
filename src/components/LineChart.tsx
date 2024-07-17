@@ -59,73 +59,13 @@ const LineChart = ({data}: {data: PengeluaranLogChartType[]}) => {
                         }}
                     >
 
-                        <div> {dayjs(data.date).format("DD,MMMM")} : {HelperFunction.FormatToRupiah(data.total as number)} </div>
+                        <div> {dayjs(data.date).format("DD, MMMM")} : {HelperFunction.FormatToRupiah(data.total as number)} </div>
                     </div>
                 )
             }} 
-            // defs={[
-            //     {
-            //         id: 'dots',
-            //         type: 'patternDots',
-            //         background: 'inherit',
-            //         color: '#38bcb2',
-            //         size: 4,
-            //         padding: 1,
-            //         stagger: true
-            //     },
-            //     {
-            //         id: 'lines',
-            //         type: 'patternLines',
-            //         background: 'inherit',
-            //         color: '#eed312',
-            //         rotation: -45,
-            //         lineWidth: 6,
-            //         spacing: 15
-            //     }
-            // ]}
-            // fill={[
-            //     {
-            //         match: {
-            //             id: 'fries'
-            //         },
-            //         id: 'dots'
-            //     },
-            //     {
-            //         match: {
-            //             id: 'sandwich'
-            //         },
-            //         id: 'lines'
-            //     }
-            // ]}
-            // borderColor={{
-            //     from: 'color',
-            //     modifiers: [
-            //         [
-            //             'darker',
-            //             '0'
-            //         ]
-            //     ]
-            // }}
             axisTop={null}
             axisRight={null}
-            // axisBottom={{
-            //     tickSize: 5,
-            //     tickPadding: 5,
-            //     tickRotation: 0,
-            //     legend: 'country',
-            //     legendPosition: 'middle',
-            //     legendOffset: 32,
-            //     truncateTickAt: 0
-            // }}
-            // axisLeft={{
-            //     tickSize: 5,
-            //     tickPadding: 5,
-            //     tickRotation: 0,
-            //     legend: 'food',
-            //     legendPosition: 'middle',
-            //     legendOffset: -60,
-            //     truncateTickAt: 0
-            // }}
+            axisBottom={null}
             enableLabel={false}
             labelSkipWidth={12}
             labelSkipHeight={12}

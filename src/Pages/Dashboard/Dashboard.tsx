@@ -7,6 +7,9 @@ import { db } from "../../services/db/db"
 import dayjs from "dayjs"
 import { HelperFunction } from "../../lib/HelperFunc"
 import { PengeluaranLogChartType } from "../../Types/ChartPengeluaranLog"
+import weekday from "dayjs/plugin/weekday";
+
+dayjs.extend(weekday)
 
 export const Dashboard = () => {
     const [isrendered, setIsrendered] = useState(false)
@@ -20,11 +23,9 @@ export const Dashboard = () => {
     }, [])
 
     const perWeek = useLiveQuery(() => {
-        const results = db.pengeluaranLogs.where('createdAt').between(dayjs().format("YYYY-MM-DD"), dayjs().add(6, 'day').format("YYYY-MM-DD"), true, true).toArray();
+        const results = db.pengeluaranLogs.where('createdAt').between(dayjs(dayjs().day(0)).format("YYYY-MM-DD"), dayjs(dayjs().day(6)).format("YYYY-MM-DD"), true, true).toArray();
         return results
     }, [])
-
-
     
     useEffect(() => {
 
@@ -67,13 +68,10 @@ export const Dashboard = () => {
                 <Text fontSize="25px" fontWeight="bold" color="gray.600" >{HelperFunction.FormatToRupiah(currentExpense || 0)}</Text>
             </Box>
             <Box w={"full"} mb="12px">
-                <Text fontSize="18px" color="gray.600">rentang waktu berdasarkan</Text>
-                <Select fontSize="14px" mt={"8px"} h="29px">
+                <Text fontSize="18px" color="gray.600">Statistik pengeluaran dalam 1 minggu</Text>
+                {/* <Select fontSize="14px" mt={"8px"} h="29px">
                     <option value='option3'>1 minggu</option>
-                    {/* <option value='option3'>1 bulan</option>
-                    <option value='option1' selected>6 bulan</option>
-                    <option value='option2'>1 Tahun</option> */}
-                </Select>
+                </Select> */}
             </Box>
 
             <Box w={"90%"} height={"50vh"} mb="8px">

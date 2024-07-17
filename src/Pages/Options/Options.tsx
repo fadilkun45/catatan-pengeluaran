@@ -112,11 +112,11 @@ const Options = () => {
                 <VStack w="full">
 
                     {
-                        supportsPWA &&   <HStack w="full" px="12px" py="6px" onClick={modalConfirmDownloadOpen} cursor="pointer">
+                        supportsPWA ? <HStack w="full" px="12px" py="6px" onClick={modalConfirmDownloadOpen} cursor="pointer">
                         <Text fontSize="sm">Download</Text>
                         <Spacer />
                         <Icon fontSize="18px" as={GoDownload} />
-                    </HStack> 
+                    </HStack> : ""
                     }
                
                     <Divider />
