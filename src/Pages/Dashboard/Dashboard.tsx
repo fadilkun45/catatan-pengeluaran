@@ -15,6 +15,7 @@ export const Dashboard = () => {
     const [isrendered, setIsrendered] = useState(false)
     const setLoading = useLoadingStore((state) => state.setLoading)
     const [chartPengeluaranLog, setChartPengeluaranLog] = useState<PengeluaranLogChartType[]>([])
+    const [selectTime, setSelectTime] = useState(dayjs(dayjs().day(1)).format("YYYY-MM-DD"))
 
     const currentExpense = useLiveQuery(() => {
 
@@ -23,7 +24,7 @@ export const Dashboard = () => {
     }, [])
 
     const perWeek = useLiveQuery(() => {
-        const results = db.pengeluaranLogs.where('createdAt').between(dayjs(dayjs().day(0)).format("YYYY-MM-DD"), dayjs(dayjs().day(6)).format("YYYY-MM-DD"), true, true).toArray();
+        const results = db.pengeluaranLogs.where('createdAt').between(selectTime, dayjs(dayjs().day(6)).format("YYYY-MM-DD"), true, true).toArray();
         return results
     }, [])
     
