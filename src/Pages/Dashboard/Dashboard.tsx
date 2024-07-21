@@ -1,4 +1,4 @@
-import { Box, Select, Text, VStack } from "@chakra-ui/react"
+import { Box, Divider, HStack, Input, Select, Text, VStack } from "@chakra-ui/react"
 import LineChart from '../../components/LineChart'
 import { useEffect, useState } from "react"
 import { useLoadingStore } from "../../store/Loading"
@@ -15,7 +15,13 @@ export const Dashboard = () => {
     const [isrendered, setIsrendered] = useState(false)
     const setLoading = useLoadingStore((state) => state.setLoading)
     const [chartPengeluaranLog, setChartPengeluaranLog] = useState<PengeluaranLogChartType[]>([])
-    const [selectTime, setSelectTime] = useState(dayjs(dayjs().day(1)).format("YYYY-MM-DD"))
+    const [selectDate, setSelectDate] = useState<{
+        firstDate: string,
+        lastDate: string
+    }>({
+        firstDate: dayjs(dayjs().day(1)).format("YYYY-MM-DD"),
+        lastDate: dayjs(dayjs().day(7)).format("YYYY-MM-DD")
+    })
 
     const currentExpense = useLiveQuery(() => {
 
@@ -24,9 +30,9 @@ export const Dashboard = () => {
     }, [])
 
     const perWeek = useLiveQuery(() => {
-        const results = db.pengeluaranLogs.where('createdAt').between(selectTime, dayjs(dayjs().day(6)).format("YYYY-MM-DD"), true, true).toArray();
+        const results = db.pengeluaranLogs.where('createdAt').between(selectDate.firstDate,selectDate.lastDate , true, true).toArray();
         return results
-    }, [])
+    }, [selectDate])
     
     useEffect(() => {
 
@@ -70,9 +76,17 @@ export const Dashboard = () => {
             </Box>
             <Box w={"full"} mb="12px">
                 <Text fontSize="18px" color="gray.600">Statistik pengeluaran dalam 1 minggu</Text>
-                {/* <Select fontSize="14px" mt={"8px"} h="29px">
-                    <option value='option3'>1 minggu</option>
-                </Select> */}
+                <Divider mt="12px" py="2px" />
+                <HStack w="full" mt="13px">
+                        <Box w="49%" >
+                            <Text mb="4px" fontSize="sm">Tanggal Awal</Text>
+                            <Input type="date" value={selectDate.firstDate} onChange={(v: React.ChangeEvent<HTMLInputElement>) => setSelectDate({ ...selectDate, 'firstDate': dayjs(v.target.value).format("YYYY-MM-DD"), lastDate: dayjs(dayjs(v.target.value).day(7)).format("YYYY-MM-DD")  })} />
+                        </Box>
+                        <Box w="49%">
+                            <Text mb="4px" fontSize="sm"> Tanggal Akhir</Text>
+                            <Input type="date" min={selectDate.firstDate} max={dayjs(dayjs(selectDate.firstDate).day(7)).format("YYYY-MM-DD")} value={selectDate.lastDate} onChange={(v: React.ChangeEvent<HTMLInputElement>) => setSelectDate({ ...selectDate, 'lastDate': dayjs(v.target.value).format("YYYY-MM-DD") })} />
+                        </Box>
+                    </HStack>
             </Box>
 
             <Box w={"90%"} height={"50vh"} mb="8px">

@@ -65,7 +65,9 @@ const LineChart = ({data}: {data: PengeluaranLogChartType[]}) => {
             }} 
             axisTop={null}
             axisRight={null}
-            axisBottom={null}
+            axisBottom={{
+                format: v => dayjs(v).format("ddd") 
+            }}
             enableLabel={false}
             labelSkipWidth={12}
             labelSkipHeight={12}
