@@ -1,7 +1,5 @@
-import { Badge, Box, Button, Divider, HStack, Icon, Input, Spacer, Text, Textarea, VStack, useDisclosure } from "@chakra-ui/react"
+import { Box, Button, Divider, HStack, Input, Spacer, Text, VStack } from "@chakra-ui/react"
 import { useEffect, useState } from "react"
-import { BiTrash, BiX } from "react-icons/bi"
-import { PengeluaranLogType } from "../../Types/PengeluaranLog"
 import { useLiveQuery } from "dexie-react-hooks"
 import { db } from "../../services/db/db"
 import dayjs from "dayjs"
@@ -9,9 +7,11 @@ import { PengeluaranListLogType } from "../../Types/PengeluaranListLog"
 import { HelperFunction } from "../../lib/HelperFunc"
 import { DetailAllLogType } from "../../Types/DetailAllLog"
 import { DetailLog } from "../../components/DetailLog"
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx'
+import { useLoadingStore } from "../../store/Loading"
 
 const LogPengeluaran = () => {
+    const setLoading = useLoadingStore((state) => state.setLoading)
     const [date, setDate] = useState<{
         firstDate: string,
         lastDate: string
@@ -71,6 +71,7 @@ const LogPengeluaran = () => {
     const exportData = (type?: string) => {
     
         if(!items) return
+        setLoading(true)
 
         const wsData = [
           ['Catatan Pengeluaran'],
@@ -84,7 +85,7 @@ const LogPengeluaran = () => {
         )
 
         
-        const ws:  XLSX.WorkSheet = XLSX.utils.aoa_to_sheet(wsData);
+        const ws: XLSX.WorkSheet = XLSX.utils.aoa_to_sheet(wsData) as XLSX.WorkSheet;
 
         // Merge cells for title
         ws['!merges'] = [
@@ -95,8 +96,16 @@ const LogPengeluaran = () => {
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'Pengeluaran');    
         
+
         XLSX.writeFile(wb, `catatan pengeluaran ${dayjs(date.firstDate).format("DD-MM-YYYY")}/${dayjs(date.lastDate).format("DD-MM-YYYY")}.xlsx`);
+
+        setLoading(false)
+
         }
+
+
+    
+
 
 
     return (
@@ -119,8 +128,8 @@ const LogPengeluaran = () => {
 
                 <VStack w="full">
                     <Text w="full" fontSize="lg" fontWeight="bold">Export Data</Text>
-                    <HStack>
-                        <Button onClick={() => exportData()} >Export</Button>
+                    <HStack w="full">
+                        <Button width="49% " border="1px solid green" bg={'transparent'} mb="10px" onClick={() => exportData()} >Export</Button>
                     </HStack>
                 </VStack>
 
