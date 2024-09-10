@@ -6,6 +6,6 @@ export const db = new Dexie('pengeluaran') as Dexie & {
 };
 
 db.version(1).stores({
-    pengeluaranLogs: '++id, createdAt, name, amount' // primary key "id" (for the runtime!)
+    pengeluaranLogs: '++id, createdAt, name, amount, categoriesId'
   });
 

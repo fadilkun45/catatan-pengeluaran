@@ -34,6 +34,7 @@ export const Dashboard = () => {
         return results
     }, [selectDate])
     
+
     useEffect(() => {
 
         const temp: PengeluaranLogChartType[] = []

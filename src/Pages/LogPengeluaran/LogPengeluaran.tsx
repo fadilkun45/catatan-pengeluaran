@@ -9,6 +9,7 @@ import { PengeluaranListLogType } from "../../Types/PengeluaranListLog"
 import { HelperFunction } from "../../lib/HelperFunc"
 import { DetailAllLogType } from "../../Types/DetailAllLog"
 import { DetailLog } from "../../components/DetailLog"
+import * as XLSX from 'xlsx';
 
 const LogPengeluaran = () => {
     const [date, setDate] = useState<{
@@ -30,6 +31,7 @@ const LogPengeluaran = () => {
         return result
     },
         [date.firstDate, date.lastDate])
+
 
     useEffect(() => {
 
@@ -66,6 +68,37 @@ const LogPengeluaran = () => {
     }, [items])
 
 
+    const exportData = (type?: string) => {
+    
+        if(!items) return
+
+        const wsData = [
+          ['Catatan Pengeluaran'],
+          ['periode', `${dayjs(date.firstDate).format("DD/MM/YYYY")} - ${dayjs(date.lastDate).format("DD/MM/YYYY")}`],
+          ['Tanggal', 'Nama', 'Jumlah'],
+          ...items.map((item) => [item.createdAt, item.name, HelperFunction.FormatToRupiah2(item.amount)])
+        ];
+
+        wsData.push(
+            ['Total', '',  HelperFunction.FormatToRupiah2(informationDetail.totalAmount) ],
+        )
+
+        
+        const ws:  XLSX.WorkSheet = XLSX.utils.aoa_to_sheet(wsData);
+
+        // Merge cells for title
+        ws['!merges'] = [
+          { s: { r: 0, c: 0 }, e: { r: 0, c: 2 } },
+          { s: { r: 1, c: 1 }, e: { r: 1, c: 2 } },
+        ];
+    
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Pengeluaran');    
+        
+        XLSX.writeFile(wb, `catatan pengeluaran ${dayjs(date.firstDate).format("DD-MM-YYYY")}/${dayjs(date.lastDate).format("DD-MM-YYYY")}.xlsx`);
+        }
+
+
     return (
         <>
 
@@ -81,6 +114,13 @@ const LogPengeluaran = () => {
                             <Text mb="4px" fontSize="sm"> Tanggal Akhir</Text>
                             <Input type="date" value={date.lastDate} onChange={(v: React.ChangeEvent<HTMLInputElement>) => setDate({ ...date, 'lastDate': v.target.value })} />
                         </Box>
+                    </HStack>
+                </VStack>
+
+                <VStack w="full">
+                    <Text w="full" fontSize="lg" fontWeight="bold">Export Data</Text>
+                    <HStack>
+                        <Button onClick={() => exportData()} >Export</Button>
                     </HStack>
                 </VStack>
 
