@@ -46,7 +46,7 @@ const LogPengeluaran = () => {
             })
 
             const arraysEqual = (a: string[], b: unknown[]) => {
-                if (a.length !== b.length) return false;
+                if (a?.length !== b?.length) return false;
 
                 const sortedA = [...a].sort((x, y) => parseInt(x) - parseInt(y));
                 const sortedB = [...b].sort((x, y) => parseInt(x as string) - parseInt(y as string));
