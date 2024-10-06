@@ -34,12 +34,12 @@ const LogPengeluaran = () => {
         const query = db.pengeluaranLogs.where('createdAt').between(date.firstDate, date.lastDate, true, true)
 
 
-        if (selectedCategories.length === 1) {
+        if (selectedCategories?.length === 1) {
             const result = query.filter(item => item?.categoriesId?.includes(selectedCategories[0].value)).toArray();
             setLoading(false)
             return result;
 
-        } else if (selectedCategories.length > 1) {
+        } else if (selectedCategories?.length > 1) {
 
             const dataArrCategories = selectedCategories?.map((item) => {
                 return item.value
@@ -79,8 +79,8 @@ const LogPengeluaran = () => {
 
         items?.map((y) => {
             temp2 = {
-                totalLog: items.length,
-                totalAmount: temp2.totalAmount + y.amount,
+                totalLog: items?.length,
+                totalAmount: temp2?.totalAmount + y?.amount,
             };
 
             if (temp1.filter((x) => x.date === y.createdAt).length === 0) {
