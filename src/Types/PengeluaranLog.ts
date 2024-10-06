@@ -3,5 +3,6 @@ export interface PengeluaranLogType {
     createdAt: string,
     name: string,
     amount: number,
+    categoriesId?: [number | string]
     [key: string]: any
 }

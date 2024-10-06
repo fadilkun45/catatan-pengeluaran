@@ -19,7 +19,6 @@ export const HelperFunction = {
         }
         return rupiah.split('', rupiah.length - 1).reverse().join('');
     },
-
     onlyNumber(parseNumber: string) {
 
         const parse = parseNumber.replace(/[^\d]/g, '')
@@ -28,6 +27,16 @@ export const HelperFunction = {
 
         return parse
 
+    },
+    FormatOptions: (data: any[], label: string, value: string ) => {
+        const options = data?.map((x: { [key: string]: unknown }) => {
+            return {
+                label: x?.[label as keyof typeof x] as string,
+                value: x?.[value as keyof typeof x]as string,
+            };
+        });
+
+        return options
     }
 }
 
