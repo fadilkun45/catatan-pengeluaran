@@ -10,15 +10,13 @@ const PieChart = ({ data }: { data: any }) => {
 
   useEffect(() => {
     let temp = []
-    data.map((x) => {
+    data?.map((x) => {
       if(x?.value > 0){
         temp.push(x)
       }
     })
     setFilteredData(temp)
   },[data])
-
-  console.log(data)
 
   return (
     <>
