@@ -83,7 +83,7 @@ export const Dashboard = () => {
 				color: item.color,
 			};
 			let totalTemp = 0;
-			item.detail?.map((x) => (totalTemp += x.amount));
+			item?.detail?.map((x) => (totalTemp += x.amount));
 			newData.value = totalTemp;
 			perCategories.push(newData);
 		});
