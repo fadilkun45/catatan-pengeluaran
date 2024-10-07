@@ -72,7 +72,7 @@ export const Dashboard = () => {
 				categoryName: y.name,
 				color: y.labelColor,
 				colorText: y.labelTextColor,
-				detail: perWeek?.filter((x) => x.categoriesId.includes(y.id)),
+				detail: perWeek?.filter((x) => x.categoriesId?.includes(y.id)),
 			};
 		});
 
