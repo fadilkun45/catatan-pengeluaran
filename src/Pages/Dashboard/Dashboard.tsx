@@ -9,6 +9,7 @@ import { HelperFunction } from '../../lib/HelperFunc';
 import { PengeluaranLogChartType } from '../../Types/ChartPengeluaranLog';
 import weekday from 'dayjs/plugin/weekday';
 import PieChart from '../../components/PieChart';
+import NotFound from '../../components/notFound';
 
 dayjs.extend(weekday);
 
@@ -20,8 +21,8 @@ export const Dashboard = () => {
 		firstDate: string;
 		lastDate: string;
 	}>({
-		firstDate: dayjs(dayjs().format('dddd') === 'Minggu' ? dayjs() : dayjs().day(1)).format('YYYY-MM-DD'),
-		lastDate: dayjs(dayjs().day(7)).format('YYYY-MM-DD'),
+		firstDate: dayjs(dayjs().format('dddd') === 'Minggu' ? dayjs().day(-7) : dayjs().day(1)).format('YYYY-MM-DD'),
+		lastDate: dayjs(dayjs().format('dddd') === 'Minggu' ?   dayjs() :  dayjs().day(7)).format('YYYY-MM-DD'),
 	});
 	const [chartCategories, setChartCategories] = useState([]);
 
@@ -54,7 +55,7 @@ export const Dashboard = () => {
 					total: y.amount,
 				});
 			} else {
-				const index = temp.findIndex((item) => item.date === y.createdAt);
+				const index = temp?.findIndex((item) => item.date === y.createdAt);
 				const existData = temp[index];
 				existData.total += y.amount;
 				temp[index] = existData;
@@ -97,6 +98,7 @@ export const Dashboard = () => {
 		setLoading(false);
 	}, []);
 
+
 	return (
 		<VStack w={'full'}>
 			<Box w={'full'} mb="12px">
@@ -130,7 +132,7 @@ export const Dashboard = () => {
 			</Box>
 
 			<Box w={'90%'} height={'50vh'} mb="8px">
-				{isrendered ? <LineChart data={chartPengeluaranLog} /> : null}
+				{isrendered && (chartPengeluaranLog?.length !== 0 ? <LineChart data={chartPengeluaranLog} /> : <NotFound />)  }
 			</Box>
 
 			<Box w={'full'} mb="12px">
@@ -140,7 +142,7 @@ export const Dashboard = () => {
 			</Box>
 
 			<Box w={'100%'} height={'65vh'} mb="8px">
-				{isrendered ? <PieChart data={chartCategories} /> : null}
+				{isrendered ? (chartCategories.filter((x) => x.value  !== 0 )?.length !== 0 ? <PieChart data={chartCategories} />  : <NotFound />): null}
 			</Box>
 		</VStack>
 	);

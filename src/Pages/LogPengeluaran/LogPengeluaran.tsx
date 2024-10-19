@@ -1,4 +1,4 @@
-import { Badge, Box, Button, Divider, HStack, Input, Spacer, Text, VStack } from '@chakra-ui/react';
+import { Box, Divider, HStack, Input, Spacer, Text, VStack } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../services/db/db';
@@ -11,6 +11,7 @@ import { useLoadingStore } from '../../store/Loading';
 import { OptionsType } from '../../Types/OptionType';
 import { Dropdown } from '../../components/Dropdown';
 import { ExportData } from './ExportData';
+import { GroupData } from './GroupData';
 const LogPengeluaran = () => {
     const setLoading = useLoadingStore((state) => state.setLoading);
     const [date, setDate] = useState<{
@@ -28,7 +29,7 @@ const LogPengeluaran = () => {
     const [selectedCategories, setSelectedCategories] = useState<OptionsType[]>([]);
     const [availableOptions, setAvailableOptions] = useState<OptionsType[]>([]);
 
-    const items = useLiveQuery(() => {
+    const items = useLiveQuery(async () => {
 
         setLoading(true)
         const query = db.pengeluaranLogs.where('createdAt').between(date.firstDate, date.lastDate, true, true)
@@ -41,20 +42,18 @@ const LogPengeluaran = () => {
 
         } else if (selectedCategories?.length > 1) {
 
-            const dataArrCategories = selectedCategories?.map((item) => {
-                return item.value
-            })
+            //  ubah selectedCategories menjadi Array Number ex : [2,3]
+            const dataArrCategories = selectedCategories.map(item => item.value);
 
-            const arraysEqual = (a: string[], b: unknown[]) => {
-                if (a?.length !== b?.length) return false;
+            // mencari tau apakah dalam data (itemCategories) tersebut ada kategori yang sama atau tidak 
+            //  includes : mencari data yang sama
+            //  some : mencari persamaan dari hasil data tersebut
+            const containsSomeCategories = (itemCategories: string[], selectedCategories: string[]) => {
+                return selectedCategories.some((category) => itemCategories.includes(category));
+            };
 
-                const sortedA = [...a].sort((x, y) => parseInt(x) - parseInt(y));
-                const sortedB = [...b].sort((x, y) => parseInt(x as string) - parseInt(y as string));
+            const result = await query.filter(item => containsSomeCategories(item.categoriesId as string[], dataArrCategories as string[])).toArray();
 
-                return sortedA.every((value, index) => value === sortedB[index]);
-            }
-
-            const result = query.filter(item => arraysEqual(item.categoriesId as string[], dataArrCategories)).toArray();
             setLoading(false)
             return result;
         } else {
@@ -170,32 +169,7 @@ const LogPengeluaran = () => {
                 </HStack>
 
                 {logTrx?.map((item, key) => (
-                    <VStack w="full" mt="10px" key={key}>
-                        <Divider />
-
-                        <VStack mb="10px" w="full">
-                            <HStack mb="9px" w="full" alignItems="start" px="20px" py="6px" borderRadius="8px" background="green.400" color="white">
-                                <Box>
-                                    <Text fontSize="29px" fontWeight="bold">
-                                        {dayjs(item?.date).format('DD')}
-                                    </Text>
-                                    <Text fontSize="16px">{dayjs(item?.date).format('MMMM, YYYY')}</Text>
-                                </Box>
-                                <Spacer />
-                                <Box>
-                                    <Text fontSize="20px" fontWeight="bold">
-                                        {HelperFunction.FormatToRupiah(item?.amount)}
-                                    </Text>
-                                </Box>
-
-
-                            </HStack>
-
-                            {item?.data?.map((details) => (
-                                <DetailLog item={details} />
-                            ))}
-                        </VStack>
-                    </VStack>
+                    <GroupData item={item} key={key} />
                 ))}
             </VStack>
         </>

@@ -4,6 +4,7 @@ import { PengeluaranLogType } from '../Types/PengeluaranLog';
 import { BiX } from 'react-icons/bi';
 import { db } from '../services/db/db';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { useState } from 'react';
 
 export const DetailLog = ({ item }: { item: PengeluaranLogType }) => {
   const { isOpen: modalConfirm, onOpen: modalConfirmOpen, onClose: modalConfirmClose } = useDisclosure();
@@ -62,7 +63,7 @@ export const DetailLog = ({ item }: { item: PengeluaranLogType }) => {
         <HStack w="full" display="flex">
           <HStack wrap={"wrap"} >
           {
-            item.categoriesId?.map((x) => {
+               item.categoriesId?.map((x) => {
               const categorieSelected = categories?.filter(categorie => categorie.id === x)[0]
               if (categorieSelected?.name) {
                 return <Badge px="3" py="3px" color={categorieSelected?.labelTextColor} background={categorieSelected?.labelColor} rounded="full" >{categorieSelected?.name}</Badge>
