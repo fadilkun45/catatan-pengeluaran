@@ -1,11 +1,10 @@
-import { Button, HStack, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, Spacer, Text, VStack, useDisclosure, useToast } from '@chakra-ui/react';
+import { Button, HStack, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Text, VStack, useDisclosure, useToast } from '@chakra-ui/react';
 import React, { useEffect, useState } from 'react';
 import { PengeluaranLogType } from '../../Types/PengeluaranLog';
 import { db } from '../../services/db/db';
 import dayjs from 'dayjs';
 import { HelperFunction } from '../../lib/HelperFunc';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { CategoriesLogType } from '../../Types/CategoriesLog';
 import { Dropdown } from '../../components/Dropdown';
 import { OptionsType } from '../../Types/OptionType';
 
@@ -24,6 +23,15 @@ export const AddPengeluaranLog = ({ modalOpen, modalClose }: modalAlertProps) =>
 	});
 	const [selectedCategories, setSelectedCategories] = useState< OptionsType[]>([]);
 	const [availableOptions, setAvailableOptions] = useState<OptionsType[]>([]);
+	const currentExpense = useLiveQuery(() => {
+		const result = db.pengeluaranLogs
+			.where('createdAt')
+			.between(dayjs().format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD'), true, true)
+			.toArray()
+			.then((transaction) => transaction.reduce((total, transaction) => total + transaction.amount, 0));
+		return result;
+	}, []);
+    const [limit] = useState(JSON.parse(localStorage.getItem(import.meta.env.VITE_REACT_DEFAULT_LIMIT as string)) || 0)
 
 	const categories = useLiveQuery(() => {
 		const result = db.categoriesLog.toArray();
@@ -45,7 +53,25 @@ export const AddPengeluaranLog = ({ modalOpen, modalClose }: modalAlertProps) =>
 		})
 
 		try {
-			void db.pengeluaranLogs.add({...newData, categoriesId});
+			void db.pengeluaranLogs.add({...newData, categoriesId}).then((res) => {
+				if(((100 *( currentExpense  + newData.amount)) / limit) > 50 && (((100 * currentExpense  + newData.amount )) / limit) < 100 && limit > 0 ){
+					toast({
+						duration: 8000,
+						colorScheme: 'yellow',
+						title:`Pengeluaranmu hari ini sudah mencapai ${HelperFunction.FormatToRupiah(currentExpense + newData.amount)}, melewati batas limit ${HelperFunction.FormatToRupiah(limit)}.`,
+						position: 'top-right',
+					});
+				}
+				if(((100 * (currentExpense  + newData.amount)) /  (limit * 2)) >= 100 && limit > 0 ){
+					toast({
+						duration: 8000,
+						colorScheme: 'red',
+						title:`Peringatan Pengeluaranmu hari ini sudah mencapai ${HelperFunction.FormatToRupiah(currentExpense + newData.amount)}, melewati batas limit ${HelperFunction.FormatToRupiah(limit)}.`,
+						position: 'top-right',
+					});
+				}
+			})
+			
 			modalConfirmClose();
 			modalClose();
 			toast({
@@ -53,6 +79,7 @@ export const AddPengeluaranLog = ({ modalOpen, modalClose }: modalAlertProps) =>
 				title: 'tambah log pengeluaran berhasil',
 				position: 'top-right',
 			});
+			
 		} catch (error) {
 			toast({
 				colorScheme: 'red',

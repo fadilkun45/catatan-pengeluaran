@@ -7,7 +7,6 @@ import { BiChevronDown, BiChevronUp } from 'react-icons/bi'
 
 export const GroupData = ({item,key}: {item: any, key: number}) => {
   const [toggle, setToggle] = useState(JSON.parse(localStorage.getItem(import.meta.env.VITE_REACT_DEFAULT_TOGGLE as string)))
-  const [limit] = useState(JSON.parse(localStorage.getItem(import.meta.env.VITE_REACT_DEFAULT_LIMIT as string)) || 0)
 
 
   return (

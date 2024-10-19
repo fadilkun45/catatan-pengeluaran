@@ -35,16 +35,14 @@ const LineChart = ({ data }: { data: PengeluaranLogChartType[] }) => {
             }))}
             keys={['dibawahLimit', 'diatasLimit']}
             markers={makers}
-            enableTotals={true}
-            totalsOffset={10}
             indexBy="date"
             margin={{ top: 50, right: 12, bottom: 50, left: 60 }}
             padding={0.3}
             innerPadding={1}
             valueScale={{ type: 'linear' }}
             indexScale={{ type: 'band', round: true }}
-            // colors={({ id }) => (id === 'dibawahLimit' ? 'rgb(255, 99, 132)' : 'rgb(56, 161, 105)')}
-            colors={({ data, id }) => ( id === "diatasLimit" ? (((50 * data.total ) / (limit * 2)) > 50 ?   '#E53E3E' : "#D69E2E" ) : 'rgb(56, 161, 105)')} // Set color based on limit
+            // ()
+            colors={({ data, id }) => ( id === "diatasLimit" && limit > 0 ? (((100 * data.total ) / (limit * 2)) > 100 ?   '#E53E3E' : "#D69E2E" ) : 'rgb(56, 161, 105)')} // Set color based on limit
             tooltip={({ data }) => {
                 return (
                     <div
@@ -54,7 +52,7 @@ const LineChart = ({ data }: { data: PengeluaranLogChartType[] }) => {
                             border: '1px solid #ccc',
                         }}
                     >
-                        <div>{dayjs(data.date).format("DD, MMMM")} : {HelperFunction.FormatToRupiah(data.total as number)}</div>
+                        <div>{dayjs(data.date).format("DD, MMMM")} : {HelperFunction.FormatToRupiah(data.total )}</div>
                     </div>
                 );
             }}

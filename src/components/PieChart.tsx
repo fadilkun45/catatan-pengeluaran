@@ -1,4 +1,4 @@
-import { Badge, HStack, theme } from '@chakra-ui/react';
+import { Badge, HStack } from '@chakra-ui/react';
 import { ResponsivePie } from '@nivo/pie';
 import { HelperFunction } from '../lib/HelperFunc';
 import { useEffect, useState } from 'react';
@@ -9,7 +9,7 @@ const PieChart = ({ data }: { data: any }) => {
   const [filteredData, setFilteredData] = useState([])
 
   useEffect(() => {
-    let temp = []
+    const temp = []
     data?.map((x) => {
       if(x?.value > 0){
         temp.push(x)
