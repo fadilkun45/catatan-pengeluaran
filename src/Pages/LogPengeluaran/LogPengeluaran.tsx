@@ -46,10 +46,9 @@ const LogPengeluaran = () => {
             const dataArrCategories = selectedCategories.map(item => item.value);
 
             // mencari tau apakah dalam data (itemCategories) tersebut ada kategori yang sama atau tidak 
-            //  includes : mencari data yang sama
             //  some : mencari persamaan dari hasil data tersebut
             const containsSomeCategories = (itemCategories: string[], selectedCategories: string[]) => {
-                return selectedCategories.some((category) => itemCategories.includes(category));
+                return selectedCategories?.some((category) => itemCategories?.includes(category));
             };
 
             const result = await query.filter(item => containsSomeCategories(item.categoriesId as string[], dataArrCategories as string[])).toArray();
