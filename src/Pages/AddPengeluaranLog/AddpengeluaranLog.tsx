@@ -48,13 +48,14 @@ export const AddPengeluaranLog = ({ modalOpen, modalClose }: modalAlertProps) =>
 	};
 
 	const handleAdd = () => {
+		const currentExpenseNew = currentExpense  + newData.amount
 		const categoriesId = selectedCategories?.map((x) => {
 			return  x.value
 		})
 
 		try {
-			void db.pengeluaranLogs.add({...newData, categoriesId}).then((res) => {
-				if(((100 *( currentExpense  + newData.amount)) / limit) > 50 && (((100 * currentExpense  + newData.amount )) / limit) < 100 && limit > 0 ){
+			void db.pengeluaranLogs.add({...newData, categoriesId}).then(() => {
+				if(((100 * currentExpenseNew) / limit) > 50 && ((100 *  currentExpenseNew) / limit) < 100 && limit > 0 ){
 					toast({
 						duration: 8000,
 						colorScheme: 'yellow',
@@ -62,7 +63,7 @@ export const AddPengeluaranLog = ({ modalOpen, modalClose }: modalAlertProps) =>
 						position: 'top-right',
 					});
 				}
-				if(((100 * (currentExpense  + newData.amount)) /  (limit * 2)) >= 100 && limit > 0 ){
+				if(((100 * currentExpenseNew) /  (limit * 2)) >= 100 && limit > 0 ){
 					toast({
 						duration: 8000,
 						colorScheme: 'red',
