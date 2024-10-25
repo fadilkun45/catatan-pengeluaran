@@ -1,4 +1,4 @@
-import { Box, Button, Divider, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Text, Textarea, VStack, useDisclosure, useToast } from "@chakra-ui/react"
+import { Box, Button, Checkbox, Divider, HStack, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Text, Textarea, VStack, useDisclosure, useToast } from "@chakra-ui/react"
 import { useState } from "react"
 import { BoxList, } from "./BoxList"
 import { CategoriesLogType } from "../../Types/CategoriesLog"
@@ -21,7 +21,8 @@ const Categories = () => {
     name: '',
     desc: '',
     labelColor: '',
-    labelTextColor: ''
+    labelTextColor: '',
+    isSpecialCategories: false
   })
   const [color, setColor] = useState("");
   const [colorText, setColorText] = useState("");
@@ -58,7 +59,8 @@ const Categories = () => {
         name: '',
         desc: '',
         labelColor: '',
-        labelTextColor: ''
+        labelTextColor: '',
+        isSpecialCategories: false
       })
       setColor('')
       setColorText('')
@@ -182,6 +184,13 @@ const Categories = () => {
             <Text mb="2" color="gray.600">Deskripsi Kategori</Text>
             <Textarea fontSize="14px" value={newCategories.desc} onChange={(v) => setNewCategories({ ...newCategories, desc: v.target.value })} variant='outline' placeholder='cth: jajan adalah kebutuhan hidup setelah sandang papan dan pangan' />
           </Box>
+          <HStack w="full" mt="3" display="flex" flexDirection="column">
+            <HStack w="full">
+              <Text mb="2" color="gray.600">Kategori Spesial</Text>
+              <Checkbox fontSize="14px" marginTop="-4px" colorScheme={"green"} checked={newCategories.isSpecialCategories} onChange={(v) => setNewCategories({ ...newCategories, isSpecialCategories: v.target.checked ? true : false })} variant='outline' />
+            </HStack>
+            <Text w="full" mb="2" color="gray.600" fontSize="small">Data kategori spesial tidak akan masuk kedalam total harian</Text>
+          </HStack>
           <Box w="full" mt="3">
             <Text mb="2" color="gray.600">Warna background dan text label</Text>
             <Box backgroundColor={color} w={"full"} cursor={"pointer"} justifyContent="center" display="flex" alignItems="center" onClick={modalColorOpen} height={"3rem"} border="1px solid gray" borderRadius="6px" >
@@ -195,7 +204,18 @@ const Categories = () => {
           <Divider />
           <Text fontSize="18" w="full" mt="10px" mb="14px" fontWeight="bold">List Kategori</Text>
           {
-            itemsCategories?.map((x, i) => (
+            itemsCategories?.filter((x) => !x.isSpecialCategories)?.map((x, i) => (
+              <BoxList onDelete={() => { modalConfirmDeleteOpen(); setDetailDelete(x) }} item={x} key={i} />
+            ))
+          }
+
+        </VStack>
+
+        <VStack w="full" mt="10px">
+          <Divider />
+          <Text fontSize="18" w="full" mt="10px" mb="14px" fontWeight="bold">List Kategori Spesial</Text>
+          {
+            itemsCategories?.filter((x) => x.isSpecialCategories)?.map((x, i) => (
               <BoxList onDelete={() => { modalConfirmDeleteOpen(); setDetailDelete(x) }} item={x} key={i} />
             ))
           }

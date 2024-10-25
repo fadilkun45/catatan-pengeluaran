@@ -29,14 +29,14 @@ export const Dashboard = () => {
 	const currentExpense = useLiveQuery(() => {
 		const result = db.pengeluaranLogs
 			.where('createdAt')
-			.between(dayjs().format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD'), true, true)
+			.between(dayjs().format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD'), true, true).filter((x) => !x.isSpecialCategories)
 			.toArray()
-			.then((transaction) => transaction.reduce((total, transaction) => total + transaction.amount, 0));
+			.then((transaction) => transaction.reduce((total, transaction) => total as number + transaction.amount, 0));
 		return result;
 	}, []);
 
 	const perWeek = useLiveQuery(() => {
-		const results = db.pengeluaranLogs.where('createdAt').between(selectDate.firstDate, selectDate.lastDate, true, true).toArray();
+		const results = db.pengeluaranLogs.where('createdAt').between(selectDate.firstDate, selectDate.lastDate, true, true).filter((x) => !x.isSpecialCategories).toArray();
 		return results;
 	}, [selectDate]);
 

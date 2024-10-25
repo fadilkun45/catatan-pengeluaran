@@ -8,7 +8,7 @@ export const db = new Dexie('pengeluaran') as Dexie & {
 };
 
 db.version(1).stores({
-    pengeluaranLogs: '++id, createdAt, name, amount, categoriesId',
-    categoriesLog: '++id, createdAt, name, desc, labelColor,labelTextColor'
+    pengeluaranLogs: '++id, createdAt, name, amount, categoriesId, isSpecialCategories',
+    categoriesLog: '++id, createdAt, name, desc, labelColor,labelTextColor, isSpecialCategories'
   });
 

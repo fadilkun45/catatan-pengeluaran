@@ -28,7 +28,7 @@ export const AddPengeluaranLog = ({ modalOpen, modalClose }: modalAlertProps) =>
 			.where('createdAt')
 			.between(dayjs().format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD'), true, true)
 			.toArray()
-			.then((transaction) => transaction.reduce((total, transaction) => total + transaction.amount, 0));
+			.then((transaction) => transaction.reduce((total, transaction) => total as number + transaction.amount, 0)).then((x) => !x.isSpecialCategories);
 		return result;
 	}, []);
     const [limit] = useState(JSON.parse(localStorage.getItem(import.meta.env.VITE_REACT_DEFAULT_LIMIT as string)) || 0)
@@ -48,26 +48,35 @@ export const AddPengeluaranLog = ({ modalOpen, modalClose }: modalAlertProps) =>
 	};
 
 	const handleAdd = () => {
-		const currentExpenseNew = currentExpense  + newData.amount
+		let isSpecialCategories = false
 		const categoriesId = selectedCategories?.map((x) => {
+			if(x?.detail?.isSpecialCategories){
+				isSpecialCategories = true
+			}
 			return  x.value
 		})
 
+		const currentExpenseNew: any = isSpecialCategories ? currentExpense : currentExpense as number  + newData.amount
+
 		try {
-			void db.pengeluaranLogs.add({...newData, categoriesId}).then(() => {
-				if(((100 * currentExpenseNew) / limit) > 50 && ((100 *  currentExpenseNew) / limit) < 100 && limit > 0 ){
+			void db.pengeluaranLogs.add({...newData, categoriesId, isSpecialCategories }).then(() => {
+				if(newData.createdAt !== dayjs().format("YYYY-MM-DD")) return
+
+				const currentExpensePercentage = (100 * currentExpenseNew) / limit
+
+				if(currentExpensePercentage > 100 && limit > 0 ){
 					toast({
 						duration: 8000,
 						colorScheme: 'yellow',
-						title:`Pengeluaranmu hari ini sudah mencapai ${HelperFunction.FormatToRupiah(currentExpense + newData.amount)}, melewati batas limit ${HelperFunction.FormatToRupiah(limit)}.`,
+						title:`Pengeluaranmu hari ini sudah mencapai ${HelperFunction.FormatToRupiah(currentExpenseNew)}, melewati batas limit ${HelperFunction.FormatToRupiah(limit)}.`,
 						position: 'top-right',
 					});
 				}
-				if(((100 * currentExpenseNew) /  (limit * 2)) >= 100 && limit > 0 ){
+				if(( currentExpensePercentage /  (limit * 2)) >= 200 && limit > 0 ){
 					toast({
 						duration: 8000,
 						colorScheme: 'red',
-						title:`Peringatan Pengeluaranmu hari ini sudah mencapai ${HelperFunction.FormatToRupiah(currentExpense + newData.amount)}, melewati batas limit ${HelperFunction.FormatToRupiah(limit)}.`,
+						title:`Peringatan Pengeluaranmu hari ini sudah mencapai ${HelperFunction.FormatToRupiah(currentExpenseNew)}, melewati batas limit ${HelperFunction.FormatToRupiah(limit)}.`,
 						position: 'top-right',
 					});
 				}

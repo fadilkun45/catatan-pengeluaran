@@ -33,6 +33,7 @@ export const HelperFunction = {
             return {
                 label: x?.[label as keyof typeof x] as string,
                 value: x?.[value as keyof typeof x]as string,
+                detail: x
             };
         });
 

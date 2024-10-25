@@ -1,4 +1,4 @@
-import { Box, Divider, HStack, Input, Spacer, Text, VStack } from '@chakra-ui/react';
+import { Box, Checkbox, Divider, HStack, Input, Spacer, Text, VStack } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../services/db/db';
@@ -28,40 +28,44 @@ const LogPengeluaran = () => {
     });
     const [selectedCategories, setSelectedCategories] = useState<OptionsType[]>([]);
     const [availableOptions, setAvailableOptions] = useState<OptionsType[]>([]);
+    const [withSpecialCategories, setWithSpecialCategories] = useState(false)
 
     const items = useLiveQuery(async () => {
 
         setLoading(true)
-        const query = db.pengeluaranLogs.where('createdAt').between(date.firstDate, date.lastDate, true, true)
+        let query = db.pengeluaranLogs.where('createdAt').between(date.firstDate, date.lastDate, true, true)
 
-
-        if (selectedCategories?.length === 1) {
-            const result = query.filter(item => item?.categoriesId?.includes(selectedCategories[0].value)).toArray();
-            setLoading(false)
-            return result;
-
-        } else if (selectedCategories?.length > 1) {
-
-            //  ubah selectedCategories menjadi Array Number ex : [2,3]
-            const dataArrCategories = selectedCategories.map(item => item.value);
-
-            // mencari tau apakah dalam data (itemCategories) tersebut ada kategori yang sama atau tidak 
-            //  some : mencari persamaan dari hasil data tersebut
-            const containsSomeCategories = (itemCategories: string[], selectedCategories: string[]) => {
-                return selectedCategories?.some((category) => itemCategories?.includes(category));
-            };
-
-            const result = await query.filter(item => containsSomeCategories(item.categoriesId as string[], dataArrCategories as string[])).toArray();
-
-            setLoading(false)
-            return result;
-        } else {
-            const result = query.toArray();
-            setLoading(false)
-            return result;
+        if (!withSpecialCategories){
+            query.filter((x) => !x.isSpecialCategories)
         }
 
-    }, [date.firstDate, date.lastDate, selectedCategories]);
+            if (selectedCategories?.length === 1) {
+                const result = query.filter(item => item?.categoriesId?.includes(selectedCategories[0].value)).toArray();
+                setLoading(false)
+                return result;
+
+            } else if (selectedCategories?.length > 1) {
+
+                //  ubah selectedCategories menjadi Array Number ex : [2,3]
+                const dataArrCategories = selectedCategories.map(item => item.value);
+
+                // mencari tau apakah dalam data (itemCategories) tersebut ada kategori yang sama atau tidak 
+                //  some : mencari persamaan dari hasil data tersebut
+                const containsSomeCategories = (itemCategories: string[], selectedCategories: string[]) => {
+                    return selectedCategories?.some((category) => itemCategories?.includes(category));
+                };
+
+                const result = await query.filter(item => containsSomeCategories(item.categoriesId as string[], dataArrCategories as string[])).toArray();
+
+                setLoading(false)
+                return result;
+            } else {
+                const result = query.toArray();
+                setLoading(false)
+                return result;
+            }
+
+    }, [date.firstDate, date.lastDate, selectedCategories, withSpecialCategories]);
 
     const categories = useLiveQuery(() => {
         const result = db.categoriesLog.toArray();
@@ -141,6 +145,11 @@ const LogPengeluaran = () => {
                     </HStack>
                 </VStack>
 
+                <HStack w="full" mt="3" display="flex" >
+                        <Text mb="2" ml="9px" color="gray.600">Kategori Spesial</Text>
+                        <Checkbox fontSize="14px" marginTop="-4px" colorScheme={"green"} checked={withSpecialCategories} onChange={(v) => setWithSpecialCategories(v.target.checked ? true : false)} variant='outline' />
+                </HStack>
+                
                 <VStack w="full">
                     <Text w="full" fontSize="lg" fontWeight="bold">
                         Export Data

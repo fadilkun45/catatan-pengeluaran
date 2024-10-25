@@ -5,5 +5,6 @@ export interface CategoriesLogType {
     desc: string,
     labelColor: string,
     labelTextColor:string,
-    [key: string]: any
+    [key: string]: any,
+    isSpecialCategories?: boolean
 }
