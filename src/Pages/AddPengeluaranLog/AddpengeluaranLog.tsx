@@ -42,7 +42,7 @@ export const AddPengeluaranLog = ({ modalOpen, modalClose }: modalAlertProps) =>
 		modalConfirmOpen();
 	};
 
-	const handleAdd = () => {
+	const handleAdd =  () => {
 		let isSpecialCategories = false;
 		const categoriesId = selectedCategories?.map((x) => {
 			if (x?.detail?.isSpecialCategories) {
@@ -54,7 +54,7 @@ export const AddPengeluaranLog = ({ modalOpen, modalClose }: modalAlertProps) =>
 		const currentExpenseNew: any = isSpecialCategories ? currentExpense : (currentExpense as unknown as number) + newData.amount;
 
 		try {
-			void db.pengeluaranLogs.add({ ...newData, categoriesId, isSpecialCategories }).then(() => {
+			void db.pengeluaranLogs.add({ ...newData, categoriesId, isSpecialCategories }, { allKeys: true }).then(() => {
 				if (newData.createdAt !== dayjs().format('YYYY-MM-DD')) return;
 
 				const currentExpensePercentage = (100 * currentExpenseNew) / limit;
@@ -110,14 +110,18 @@ export const AddPengeluaranLog = ({ modalOpen, modalClose }: modalAlertProps) =>
 			delete item.selectedCategories;
 			item.isSpecialCategories = isSpecialCategories;
 			item.categoriesId = categoriesId;
-			totalAll += !isSpecialCategories && item.amount; 
+			if(!isSpecialCategories){
+				totalAll +=  item.amount; 
+			}
+			
 			newData.push(item);
 		});
 
 		const currentExpenseNew: any = parseInt(currentExpense) + parseInt(totalAll);
 
 		try {
-			void db.pengeluaranLogs.bulkAdd(newData).then(() => {
+			
+			void db.pengeluaranLogs.bulkAdd(newData, { allKeys: true }).then(() => {
 				const currentExpensePercentage = (100 * currentExpenseNew) / limit;
 
 				if (currentExpensePercentage > 100 && limit > 0) {
@@ -146,13 +150,13 @@ export const AddPengeluaranLog = ({ modalOpen, modalClose }: modalAlertProps) =>
 				position: 'top-right',
 			});
 		} catch (error) {
-			// 	toast({
-			// 		colorScheme: 'red',
-			// 		title: 'error log tambah pengeluaran',
-			// 		position: 'top-right',
-			// 	});
-			// 	modalConfirmClose();
-			// 	modalClose();
+				toast({
+					colorScheme: 'red',
+					title: 'error log tambah pengeluaran',
+					position: 'top-right',
+				});
+				modalConfirmClose();
+				modalClose();
 		}
 	};
 
@@ -173,7 +177,7 @@ export const AddPengeluaranLog = ({ modalOpen, modalClose }: modalAlertProps) =>
 						<Button
 							colorScheme="green"
 							onClick={() => {
-								dataFromImage ? void handleAddFromImage() : void handleAdd();
+								imageTab ? void handleAddFromImage() : void handleAdd();
 							}}
 						>
 							Ya
