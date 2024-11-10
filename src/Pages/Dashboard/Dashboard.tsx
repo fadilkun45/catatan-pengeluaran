@@ -31,7 +31,7 @@ export const Dashboard = () => {
 			.where('createdAt')
 			.between(dayjs().format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD'), true, true).filter((x) => !x.isSpecialCategories)
 			.toArray()
-			.then((transaction) => transaction.reduce((total, transaction) => total as number + transaction.amount, 0));
+			.then((transaction) => transaction.reduce((total, transaction) => total  + transaction.amount, 0));
 		return result;
 	}, []);
 
