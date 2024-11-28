@@ -10,7 +10,7 @@ import { Dropdown } from '../../components/Dropdown';
 import { OptionsType } from '../../Types/OptionType';
 import dayjs from 'dayjs';
 
-const ImageForm = ({setImageFromData,parentData}: {setImageFromData: (parms: any) => void; parentData: any}) => {
+const ImageForm = ({ setImageFromData, parentData }: { setImageFromData: (parms: any) => void; parentData: any }) => {
 	const toast = useToast();
 	const fileInputRef = useRef(null);
 	const [isLoading, setIsLoading] = useState(false);
@@ -38,33 +38,56 @@ const ImageForm = ({setImageFromData,parentData}: {setImageFromData: (parms: any
 					logger: (m) => console.log(m),
 				});
 
-
 				const lines = result.data.text.trim().split('\n');
 
 				const itemPattern = /^(.*?)(\d+)\s+(\d+),?(\d*)$/;
-				const datePattern = /^(\d{2}\.\d{2}\s?\.\d{2})-(\d{2}:\d{2})/;
 				const parsedItems = [];
-				console.log('lines', lines);
 
-				lines.forEach((line) => {
-					const match = itemPattern.exec(line);
+				if (result.data.text.includes('Metode pembayaran')) {
+					let name = '';
+					let amount = 0;
 
-					// const dateMatch = datePattern.exec(line);
-					// if (dateMatch) {
-          //   console.log("raw",dateMatch[1].replace(/\s?\./g, '-'))
-          //   const split = dateMatch[1].replace(/\s?\./g, '-').split("-")
-					// 	setDate(dayjs(split[2] + split[1] + split[0].replace(/\s?\./g, '-')).format('YYYY-MM-DD'));
-					// 	console.log('tgl', {
-					// 		date: dayjs(split[2] + split[1] + split[0].replace(/\s?\./g, '-')).format('YYYY-MM-DD'), // Format: DD-MM-YY
-					// 	});
-					// }
+					lines.forEach((line, index) => {
+						const itemPattern = /^(.*?)\s+Rp([\d.,]+)/i;
+						const match = itemPattern.exec(line);
+						if (index === 3) {
+							name = line;
+						}
+						if (match) {
+							amount = parseFloat(match[2].replace(/\./g, '').replace(',', '.'));
+						}
+					});
 
-					if (match) {
-						const name = match[1].trim(); // Nama item
-						const amount = parseInt(match[2], 10); // Harga satuan
-						parsedItems.push({ amount, name,  selectedCategories: [], createdAt: dayjs().format('YYYY-MM-DD') });
+					if (name && amount) {
+						parsedItems.push({
+							amount,
+							name,
+							selectedCategories: [],
+							createdAt: dayjs().format('YYYY-MM-DD'),
+						});
 					}
-				});
+					
+				} else {
+					lines.forEach((line) => {
+						const match = itemPattern.exec(line);
+
+						// const dateMatch = datePattern.exec(line);
+						// if (dateMatch) {
+						//   console.log("raw",dateMatch[1].replace(/\s?\./g, '-'))
+						//   const split = dateMatch[1].replace(/\s?\./g, '-').split("-")
+						// 	setDate(dayjs(split[2] + split[1] + split[0].replace(/\s?\./g, '-')).format('YYYY-MM-DD'));
+						// 	console.log('tgl', {
+						// 		date: dayjs(split[2] + split[1] + split[0].replace(/\s?\./g, '-')).format('YYYY-MM-DD'), // Format: DD-MM-YY
+						// 	});
+						// }
+
+						if (match) {
+							const name = match[1].trim(); // Nama item
+							const amount = parseInt(match[2], 10); // Harga satuan
+							parsedItems.push({ amount, name, selectedCategories: [], createdAt: dayjs().format('YYYY-MM-DD') });
+						}
+					});
+				}
 
 				setResultData(parsedItems);
 
@@ -102,9 +125,9 @@ const ImageForm = ({setImageFromData,parentData}: {setImageFromData: (parms: any
 		setAvailableOptions(format);
 	}, [categories]);
 
-  useEffect(() => {
-    setImageFromData(resultData)
-  },[resultData,date])
+	useEffect(() => {
+		setImageFromData(resultData);
+	}, [resultData, date]);
 
 	const handleFileInputClick = () => {
 		if (fileInputRef.current) {
@@ -130,14 +153,13 @@ const ImageForm = ({setImageFromData,parentData}: {setImageFromData: (parms: any
 		setResultData(cloneArray);
 	};
 
-
 	return (
 		<VStack w="full" justifyContent="center" alignItems="center" overflowY="auto" pt="20px" spacing={4}>
 			<Button colorScheme="green" onClick={handleFileInputClick} isLoading={isLoading}>
-				{isAvailableFile && resultData?.length > 0  ? 'Ganti Foto' : 'pilih Foto'}
+				{isAvailableFile && resultData?.length > 0 ? 'Ganti Foto' : 'pilih Foto'}
 			</Button>
 			{fileInputRef && <Input onClick={(v) => (v.currentTarget.value = null)} type="file" accept="image/*" ref={fileInputRef} display="none" onChange={handleFileSelection} />}
-			{resultData?.length  && (
+			{resultData?.length && (
 				<Box height="50vh" w="full">
 					<Text w="full">Tanggal</Text>
 					<Input fontSize="sm" value={date} mt="12px" onChange={(v) => setDate(v.target.value)} type="date" name="createdAt" w="full" />
