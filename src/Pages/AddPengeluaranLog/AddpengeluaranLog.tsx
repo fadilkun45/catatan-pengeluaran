@@ -1,120 +1,190 @@
-import { Badge, Box, Button, Divider, HStack, Icon, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, Spacer, Text, Textarea, VStack, useDisclosure, useToast } from "@chakra-ui/react"
-import { ModalAlert } from "../../components/ModalAlert"
-import { ChangeEvent, useState } from "react"
-import { FiTrash, FiX } from "react-icons/fi"
-
+import { Button, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Tab, TabList, TabPanel, TabPanels, Tabs, Text, useDisclosure, useToast } from '@chakra-ui/react';
+import { useState } from 'react';
+import { PengeluaranLogType } from '../../Types/PengeluaranLog';
+import { db } from '../../services/db/db';
+import dayjs from 'dayjs';
+import { HelperFunction } from '../../lib/HelperFunc';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { OptionsType } from '../../Types/OptionType';
+import ManualForm from './ManualForm';
+import { useBookStore } from '../../store/BookStore';
 
 interface modalAlertProps {
-    modalOpen: boolean,
-    modalClose: () => void,
+	modalOpen: boolean;
+	modalClose: () => void;
 }
 
 export const AddPengeluaranLog = ({ modalOpen, modalClose }: modalAlertProps) => {
-    const toast = useToast()
-    const { isOpen: modalSuccessAdd, onOpen: modalSuccessAddOpen, onClose: modalSuccessAddClose } = useDisclosure()
-    const { isOpen: modalConfirm, onOpen: modalConfirmOpen, onClose: modalConfirmClose } = useDisclosure()
-    const [dropdownVal, setDropdownVal] = useState('')
-    const [kategoriData, setKategoriData] = useState<string[]>([])
+	const toast = useToast();
+			const { BookDetail, setActiveBooks } = useBookStore();
+	const { isOpen: modalConfirm, onOpen: modalConfirmOpen, onClose: modalConfirmClose } = useDisclosure();
+	const [newData, setNewData] = useState<PengeluaranLogType>({
+		amount: 0,
+		createdAt: dayjs().format('YYYY-MM-DD'),
+		name: '',
+		bookId: BookDetail?.id,
+	});
 
-    const handleAddkategori = (e: React.ChangeEvent<HTMLSelectElement>) => {
-
-        if (kategoriData.filter((x) => x === e.target.value).length !== 0) {
-            setDropdownVal('')
-            toast({
-                title: "Kategori sudah ditambahkan",
-                colorScheme: "yellow",
-                position: "top-right"
-            })
-            return
-        }
-
-        setKategoriData([
-            ...kategoriData, e.target.value
-        ])
-        setDropdownVal('')
-    }
-
-    const handleDeleteKategori = (e: string) => {
-        setKategoriData(
-            kategoriData.filter((x) => e !== x)
-        )
-        setDropdownVal('')
-    }
+	const [selectedCategories, setSelectedCategories] = useState<OptionsType[]>([]);
+	const [dataFromImage, setDataFromImage] = useState<PengeluaranLogType[]>([]);
+	const [imageTab, setImageTab] = useState(false)
+	const currentExpense = useLiveQuery(() => {
+		const result = db.pengeluaranLogs
+			.where('createdAt')
+			.between(dayjs().format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD'), true, true)
+			.toArray()
+			.then((transaction) => transaction.filter((item) => !item.isSpecialCategories && (BookDetail?.id === 'default' ? true : item.bookId === BookDetail.id)).reduce((total, transaction) => total + transaction.amount, 0))
+		return result;
+	}, [BookDetail]);
+		const [selectedBook, setSelectedBook] = useState<any>({ value: BookDetail?.id, label: BookDetail?.name, detail: BookDetail });
 
 
-    console.log("kategori", kategoriData)
+
+	const [limit] = useState(JSON.parse(localStorage.getItem(import.meta.env.VITE_REACT_DEFAULT_LIMIT as string)) || 0);
+
+	const BeforeAdd = () => {
+		modalConfirmOpen();
+	};
+
+	const handleAdd =  () => {
+		let isSpecialCategories = false;
+		const categoriesId = selectedCategories?.map((x) => {
+			if (x?.detail?.isSpecialCategories) {
+				isSpecialCategories = true;
+			}
+			return x.value;
+		});
+
+		const currentExpenseNew: any = isSpecialCategories ? currentExpense : (currentExpense as unknown as number) + newData.amount;
+
+		try {
+			void db.pengeluaranLogs.add({ ...newData, categoriesId, isSpecialCategories }).then(() => {
+				if (newData.createdAt !== dayjs().format('YYYY-MM-DD')) return;
+
+				const currentExpensePercentage = (100 * currentExpenseNew) / limit;
+				console.log("test",currentExpensePercentage, "expense", currentExpenseNew);
+				console.log("test total cuyrrenct", currentExpense);
+
+				if (currentExpensePercentage > 100 && limit > 0) {
+					toast({
+						duration: 8000,
+						colorScheme: 'yellow',
+						title: `Pengeluaranmu hari ini sudah mencapai ${HelperFunction.FormatToRupiah(currentExpenseNew)}, melewati batas limit ${HelperFunction.FormatToRupiah(limit)}.`,
+						position: 'top-right',
+					});
+				}
+				if (currentExpensePercentage / (limit * 2) >= 200 && limit > 0) {
+					toast({
+						duration: 8000,
+						colorScheme: 'red',
+						title: `Peringatan Pengeluaranmu hari ini sudah mencapai ${HelperFunction.FormatToRupiah(currentExpenseNew)}, melewati batas limit ${HelperFunction.FormatToRupiah(limit)}.`,
+						position: 'top-right',
+					});
+				}
+			});
+
+			modalConfirmClose();
+			modalClose();
+			toast({
+				colorScheme: 'green',
+				title: 'tambah log pengeluaran berhasil',
+				position: 'top-right',
+			});
+		} catch (error) {
+			toast({
+				colorScheme: 'red',
+				title: 'error log tambah pengeluaran',
+				position: 'top-right',
+			});
+			modalConfirmClose();
+			modalClose();
+		}
+	};
+
+	const handleBookChange = (option: any) => {
+		setNewData({ ...newData, bookId: option.value });
+		setSelectedBook(option);
+		
+	}
 
 
-    return (
-        <>
-            <ModalAlert title="Success" subtitle="Tambah catatan pengeluaran berhasil" modalOpen={modalSuccessAdd} modalClose={() => {modalSuccessAddClose();modalClose()}} />
 
-            <Modal isOpen={modalConfirm} onClose={() => modalConfirmClose()}>
-                <ModalOverlay />
-                <ModalContent>
-                    <ModalHeader>Tambah Kategori</ModalHeader>
-                    <ModalCloseButton />
-                    <ModalBody>
-                        <Text>Anda yakin ingin menyimpan kategori berikut ?</Text>
-                    </ModalBody>
-                    <ModalFooter>
-                        <Button colorScheme='gray' mr={3} onClick={() => modalConfirmClose()}>
-                            Tidak
-                        </Button>
-                        <Button colorScheme="green" onClick={() => { modalConfirmClose();modalSuccessAddOpen()}}>Ya</Button>
-                    </ModalFooter>
-                </ModalContent>
-            </Modal>
+	return (
+		<>
+			<Modal size="xl" isOpen={modalConfirm} onClose={() => modalConfirmClose()}>
+				<ModalOverlay />
+				<ModalContent>
+					<ModalHeader>Tambah log pengeluaran</ModalHeader>
+					<ModalCloseButton />
+					<ModalBody>
+						<Text>Anda yakin ingin menyimpan log pengeluaran berikut ?</Text>
+					</ModalBody>
+					<ModalFooter>
+						<Button colorScheme="gray" mr={3} onClick={() => modalConfirmClose()}>
+							Tidak
+						</Button>
+						<Button
+							colorScheme="green"
+							onClick={handleAdd}
+						>
+							Ya
+						</Button>
+					</ModalFooter>
+				</ModalContent>
+			</Modal>
 
-            <Modal isOpen={modalOpen} onClose={() => modalClose()}>
-                <ModalOverlay />
-                <ModalContent>
+			<Modal isOpen={modalOpen} onClose={() => modalClose()}>
+				<ModalOverlay />
+				<ModalContent>
+					<ModalHeader>Tambah Catatan Pengeluaran</ModalHeader>
+					<ModalCloseButton />
+					<ModalBody>
+						<Tabs colorScheme="green">
+							<TabList>
+								<Tab
+									width="50%"
+									onClick={() => {
+										setDataFromImage([]);
+										setImageTab(false);
+									}}
+								>
+									Form
+								</Tab>
+								<Tab
+									width="50%"
+									onClick={() => {
+										setImageTab(true);
+										setDataFromImage([]);
+										setNewData({
+											amount: 0,
+											createdAt: dayjs().format('YYYY-MM-DD'),
+											name: '',
+										});
+										setSelectedCategories(null);
+									}}
+								>
+									Foto
+								</Tab>
+							</TabList>
+							<TabPanels>
+								<TabPanel>
+									<ManualForm selectedBook={selectedBook} handleBookChange={handleBookChange} selectedCategories={selectedCategories} handleCategories={(v) => setSelectedCategories(v)} setNewData={setNewData} newData={newData} />
+								</TabPanel>
+								<TabPanel>Fitur di tekdown hehehehe</TabPanel>
+							</TabPanels>
+						</Tabs>
+					</ModalBody>
 
-                    <ModalHeader>Tambah Catatan Pengeluaran</ModalHeader>
-                    <ModalCloseButton />
-                    <ModalBody>
-                        <VStack w="full">
-                            <Text w="full" mb="4px">Nama Pengeluaran</Text>
-                            <Input fontSize="sm" name="" mb="8px" w="full" />
-                            <Text w="full" mb="4px">Total pengeluaran</Text>
-                            <Input fontSize="sm" name="" mb="8px" w="full" />
-                            <Text w="full" mb="4px">Tanggal</Text>
-                            <Input fontSize="sm" type="date" name="" mb="8px" w="full" />
-
-                            <Text w="full" mb="4px">Kategori</Text>
-                            <Select value={dropdownVal} fontSize="14px" placeholder="pilih kategori" onChange={(e) => handleAddkategori(e)}>
-                                <option value='makanan'>Makanan</option>
-                                <option value='minuman'>minuman</option>
-                                <option value='jajanan' >jajanan</option>
-                            </Select>
-
-                            <VStack w="full" mt="8px">
-                                {/* {kategoriData.length > 0 ? <Text fontWeight="bold">List Kategori</Text> : ""} */}
-                                {/* {
-                                    kategoriData.map((x) => (
-                                        <HStack bg="green.500" mt="8px" px="4" py='2' borderRadius="5" textColor="white" w="full">
-                                            <VStack w="50%" >
-                                                <Text w="full" fontSize={{ 'base': "12px", 'md': "sm" }} whiteSpace="nowrap">Pengeluaran hari ini di kategori</Text>
-                                                <Text w="full" fontSize={{ 'base': "15px", 'md': "lg" }} mt="-8px" fontWeight="bold" >{x}</Text>
-                                                <Text w="full" fontSize={{ 'base': "18px", 'md': "xl" }} mt="-8px" whiteSpace="nowrap">Rp. 80.000</Text>
-                                            </VStack>
-                                            <Spacer />
-                                            <Icon color="white" fontSize="22px" onClick={(e) => handleDeleteKategori(x)} as={FiX} />
-                                        </HStack>
-                                    ))
-                                } */}
-                            </VStack>
-
-                        </VStack>
-                    </ModalBody>
-
-                    <ModalFooter>
-                        <Button colorScheme="gray" mr="12px" onClick={() => modalClose()}>tutup</Button>
-                        <Button colorScheme="green" onClick={() => {modalConfirmOpen()}}>Submit</Button>
-                    </ModalFooter>
-                </ModalContent>
-            </Modal>
-
-        </>
-    )
-}
+					<ModalFooter>
+						<Button colorScheme="gray" mr="12px" onClick={() => modalClose()}>
+							tutup
+						</Button>
+						<Button colorScheme="green" onClick={BeforeAdd} isDisabled={imageTab ? (!dataFromImage || dataFromImage?.length == 0 ? true : false) : !newData.amount || !newData.name ? true : false}>
+							Submit
+						</Button>
+					</ModalFooter>
+				</ModalContent>
+			</Modal>
+		</>
+	);
+};
