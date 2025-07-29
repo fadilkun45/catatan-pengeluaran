@@ -6,12 +6,13 @@ import dayjs from 'dayjs';
 import { PengeluaranListLogType } from '../../Types/PengeluaranListLog';
 import { HelperFunction } from '../../lib/HelperFunc';
 import { DetailAllLogType } from '../../Types/DetailAllLog';
-import { DetailLog } from '../../components/DetailLog';
 import { useLoadingStore } from '../../store/Loading';
 import { OptionsType } from '../../Types/OptionType';
 import { Dropdown } from '../../components/Dropdown';
 import { ExportData } from './ExportData';
 import { GroupData } from './GroupData';
+import { useBookStore } from '../../store/BookStore';
+
 const LogPengeluaran = () => {
     const setLoading = useLoadingStore((state) => state.setLoading);
     const [date, setDate] = useState<{
@@ -29,41 +30,47 @@ const LogPengeluaran = () => {
     const [selectedCategories, setSelectedCategories] = useState<OptionsType[]>([]);
     const [availableOptions, setAvailableOptions] = useState<OptionsType[]>([]);
     const [withSpecialCategories, setWithSpecialCategories] = useState(false)
+    const { BookDetail, setActiveBooks } = useBookStore();
+
 
     const items = useLiveQuery(async () => {
 
         setLoading(true)
         let query = db.pengeluaranLogs.where('createdAt').between(date.firstDate, date.lastDate, true, true)
 
-        if (!withSpecialCategories){
+        if (BookDetail.id !== 'default') {
+            query = query.filter(item => item.bookId === BookDetail.id);
+        }
+
+        if (!withSpecialCategories) {
             query.filter((x) => !x.isSpecialCategories)
         }
 
-            if (selectedCategories?.length === 1) {
-                const result = query.filter(item => item?.categoriesId?.includes(selectedCategories[0].value)).toArray();
-                setLoading(false)
-                return result;
+        if (selectedCategories?.length === 1) {
+            const result = query.filter(item => item?.categoriesId?.includes(selectedCategories[0].value)).toArray();
+            setLoading(false)
+            return result;
 
-            } else if (selectedCategories?.length > 1) {
+        } else if (selectedCategories?.length > 1) {
 
-                //  ubah selectedCategories menjadi Array Number ex : [2,3]
-                const dataArrCategories = selectedCategories.map(item => item.value);
+            //  ubah selectedCategories menjadi Array Number ex : [2,3]
+            const dataArrCategories = selectedCategories.map(item => item.value);
 
-                // mencari tau apakah dalam data (itemCategories) tersebut ada kategori yang sama atau tidak 
-                //  some : mencari persamaan dari hasil data tersebut
-                const containsSomeCategories = (itemCategories: string[], selectedCategories: string[]) => {
-                    return selectedCategories?.some((category) => itemCategories?.includes(category));
-                };
+            // mencari tau apakah dalam data (itemCategories) tersebut ada kategori yang sama atau tidak 
+            //  some : mencari persamaan dari hasil data tersebut
+            const containsSomeCategories = (itemCategories: string[], selectedCategories: string[]) => {
+                return selectedCategories?.some((category) => itemCategories?.includes(category));
+            };
 
-                const result = await query.filter(item => containsSomeCategories(item.categoriesId as string[], dataArrCategories as string[])).toArray();
+            const result = await query.filter(item => containsSomeCategories(item.categoriesId as string[], dataArrCategories as string[])).toArray();
 
-                setLoading(false)
-                return result;
-            } else {
-                const result = query.toArray();
-                setLoading(false)
-                return result;
-            }
+            setLoading(false)
+            return result;
+        } else {
+            const result = query.toArray();
+            setLoading(false)
+            return result;
+        }
 
     }, [date.firstDate, date.lastDate, selectedCategories, withSpecialCategories]);
 
@@ -146,10 +153,10 @@ const LogPengeluaran = () => {
                 </VStack>
 
                 <HStack w="full" mt="3" display="flex" >
-                        <Text mb="2" ml="9px" color="gray.600">Kategori Spesial</Text>
-                        <Checkbox fontSize="14px" marginTop="-4px" colorScheme={"green"} checked={withSpecialCategories} onChange={(v) => setWithSpecialCategories(v.target.checked ? true : false)} variant='outline' />
+                    <Text mb="2" ml="9px" color="gray.600">Kategori Spesial</Text>
+                    <Checkbox fontSize="14px" marginTop="-4px" colorScheme={"green"} checked={withSpecialCategories} onChange={(v) => setWithSpecialCategories(v.target.checked ? true : false)} variant='outline' />
                 </HStack>
-                
+
                 <VStack w="full">
                     <Text w="full" fontSize="lg" fontWeight="bold">
                         Export Data

@@ -6,5 +6,6 @@ export interface CategoriesLogType {
     labelColor: string,
     labelTextColor:string,
     [key: string]: any,
-    isSpecialCategories?: boolean
+    isSpecialCategories?: boolean,
+    bookId?: string
 }

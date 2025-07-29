@@ -6,6 +6,7 @@ import dayjs from "dayjs"
 import { db } from "../../services/db/db"
 import { useLiveQuery } from "dexie-react-hooks"
 import { HexColorPicker } from "react-colorful"
+import { useBookStore } from "../../store/BookStore"
 
 const Categories = () => {
   const toast = useToast()
@@ -14,6 +15,7 @@ const Categories = () => {
   const { isOpen: modalConfirmDelete, onOpen: modalConfirmDeleteOpen, onClose: modalConfirmDeleteClose } = useDisclosure()
   const { isOpen: modalConfirmDeleteSuccess, onOpen: modalConfirmDeleteSuccessOpen, onClose: modalConfirmDeleteSuccessClose } = useDisclosure()
   const { isOpen: modalColor, onOpen: modalColorOpen, onClose: modalColorClose } = useDisclosure()
+  const { BookDetail } = useBookStore();
 
   const [detailDelete, setDetailDelete] = useState<CategoriesLogType>()
   const [newCategories, setNewCategories] = useState<CategoriesLogType>({
@@ -22,15 +24,21 @@ const Categories = () => {
     desc: '',
     labelColor: '',
     labelTextColor: '',
-    isSpecialCategories: false
+    isSpecialCategories: false,
+    bookId: BookDetail?.id || 'default'
   })
   const [color, setColor] = useState("");
   const [colorText, setColorText] = useState("");
 
   const itemsCategories = useLiveQuery(() => {
-    const result = db.categoriesLog.toArray()
+    const result = db.categoriesLog.toArray().then((items) => {
+      if (BookDetail?.id !== 'default') {
+        return items.filter((x) => x.bookId === BookDetail.id)
+      }
+      return items
+    })
     return result
-  }, [])
+  }, [BookDetail])
 
 
   const handleAdd = () => {
@@ -60,7 +68,7 @@ const Categories = () => {
         desc: '',
         labelColor: '',
         labelTextColor: '',
-        isSpecialCategories: false
+        bookId: BookDetail?.id || 'default'
       })
       setColor('')
       setColorText('')

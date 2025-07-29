@@ -5,5 +5,7 @@ export interface PengeluaranLogType {
     amount: number,
     categoriesId?: [number | string],
     isSpecialCategories?: boolean
-    [key: string]: any
+    [key: string]: any,
+        bookId?: string
+
 }

@@ -1,4 +1,4 @@
-import { Box, Button, HStack, Icon, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Spacer, Text, Textarea, VStack } from "@chakra-ui/react"
+import { Box, Button, Icon, Text } from "@chakra-ui/react"
 import { FiTrash } from "react-icons/fi"
 import { useNavigate } from "react-router-dom"
 import { CategoriesLogType } from "../../Types/CategoriesLog"

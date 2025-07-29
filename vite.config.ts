@@ -11,7 +11,7 @@ export default defineConfig({
       manifest: {
         name: 'Pengeluaranku App',
         short_name: 'Pengeluaranku',
-        description: 'Apk mantap',
+        description: 'your friend money app',
         theme_color: '#ffffff',
         icons: [
           {

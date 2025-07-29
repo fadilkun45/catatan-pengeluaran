@@ -7,7 +7,7 @@ import { HelperFunction } from '../../lib/HelperFunc';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { OptionsType } from '../../Types/OptionType';
 import ManualForm from './ManualForm';
-import ImageForm from './ImageForm';
+import { useBookStore } from '../../store/BookStore';
 
 interface modalAlertProps {
 	modalOpen: boolean;
@@ -16,12 +16,15 @@ interface modalAlertProps {
 
 export const AddPengeluaranLog = ({ modalOpen, modalClose }: modalAlertProps) => {
 	const toast = useToast();
+			const { BookDetail, setActiveBooks } = useBookStore();
 	const { isOpen: modalConfirm, onOpen: modalConfirmOpen, onClose: modalConfirmClose } = useDisclosure();
 	const [newData, setNewData] = useState<PengeluaranLogType>({
 		amount: 0,
 		createdAt: dayjs().format('YYYY-MM-DD'),
 		name: '',
+		bookId: BookDetail?.id,
 	});
+
 	const [selectedCategories, setSelectedCategories] = useState<OptionsType[]>([]);
 	const [dataFromImage, setDataFromImage] = useState<PengeluaranLogType[]>([]);
 	const [imageTab, setImageTab] = useState(false)
@@ -30,10 +33,11 @@ export const AddPengeluaranLog = ({ modalOpen, modalClose }: modalAlertProps) =>
 			.where('createdAt')
 			.between(dayjs().format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD'), true, true)
 			.toArray()
-			.then((transaction) => transaction.reduce((total, transaction) => total + transaction.amount, 0))
-			.then((x) => !x.isSpecialCategories);
+			.then((transaction) => transaction.filter((item) => !item.isSpecialCategories && (BookDetail?.id === 'default' ? true : item.bookId === BookDetail.id)).reduce((total, transaction) => total + transaction.amount, 0))
 		return result;
-	}, []);
+	}, [BookDetail]);
+		const [selectedBook, setSelectedBook] = useState<any>({ value: BookDetail?.id, label: BookDetail?.name, detail: BookDetail });
+
 
 
 	const [limit] = useState(JSON.parse(localStorage.getItem(import.meta.env.VITE_REACT_DEFAULT_LIMIT as string)) || 0);
@@ -54,10 +58,12 @@ export const AddPengeluaranLog = ({ modalOpen, modalClose }: modalAlertProps) =>
 		const currentExpenseNew: any = isSpecialCategories ? currentExpense : (currentExpense as unknown as number) + newData.amount;
 
 		try {
-			void db.pengeluaranLogs.add({ ...newData, categoriesId, isSpecialCategories }, { allKeys: true }).then(() => {
+			void db.pengeluaranLogs.add({ ...newData, categoriesId, isSpecialCategories }).then(() => {
 				if (newData.createdAt !== dayjs().format('YYYY-MM-DD')) return;
 
 				const currentExpensePercentage = (100 * currentExpenseNew) / limit;
+				console.log("test",currentExpensePercentage, "expense", currentExpenseNew);
+				console.log("test total cuyrrenct", currentExpense);
 
 				if (currentExpensePercentage > 100 && limit > 0) {
 					toast({
@@ -95,70 +101,13 @@ export const AddPengeluaranLog = ({ modalOpen, modalClose }: modalAlertProps) =>
 		}
 	};
 
-	const handleAddFromImage = () => {
-		const newData: any = [];
-		let totalAll = 0;
+	const handleBookChange = (option: any) => {
+		setNewData({ ...newData, bookId: option.value });
+		setSelectedBook(option);
+		
+	}
 
-		dataFromImage?.map((item) => {
-			let isSpecialCategories = false;
-			const categoriesId = item?.selectedCategories?.map((x) => {
-				if (x?.detail?.isSpecialCategories) {
-					isSpecialCategories = true;
-				}
-				return x.value;
-			});
-			delete item.selectedCategories;
-			item.isSpecialCategories = isSpecialCategories;
-			item.categoriesId = categoriesId;
-			if(!isSpecialCategories){
-				totalAll +=  item.amount; 
-			}
-			
-			newData.push(item);
-		});
 
-		const currentExpenseNew: any = parseInt(currentExpense) + parseInt(totalAll);
-
-		try {
-			
-			void db.pengeluaranLogs.bulkAdd(newData, { allKeys: true }).then(() => {
-				const currentExpensePercentage = (100 * currentExpenseNew) / limit;
-
-				if (currentExpensePercentage > 100 && limit > 0) {
-					toast({
-						duration: 8000,
-						colorScheme: 'yellow',
-						title: `Pengeluaranmu hari ini sudah mencapai ${HelperFunction.FormatToRupiah(currentExpenseNew)}, melewati batas limit ${HelperFunction.FormatToRupiah(limit)}.`,
-						position: 'top-right',
-					});
-				}
-				if (currentExpensePercentage / (limit * 2) >= 200 && limit > 0) {
-					toast({
-						duration: 8000,
-						colorScheme: 'red',
-						title: `Peringatan Pengeluaranmu hari ini sudah mencapai ${HelperFunction.FormatToRupiah(currentExpenseNew)}, melewati batas limit ${HelperFunction.FormatToRupiah(limit)}.`,
-						position: 'top-right',
-					});
-				}
-			});
-
-			modalConfirmClose();
-			modalClose();
-			toast({
-				colorScheme: 'green',
-				title: 'tambah log pengeluaran berhasil',
-				position: 'top-right',
-			});
-		} catch (error) {
-				toast({
-					colorScheme: 'red',
-					title: 'error log tambah pengeluaran',
-					position: 'top-right',
-				});
-				modalConfirmClose();
-				modalClose();
-		}
-	};
 
 	return (
 		<>
@@ -176,9 +125,7 @@ export const AddPengeluaranLog = ({ modalOpen, modalClose }: modalAlertProps) =>
 						</Button>
 						<Button
 							colorScheme="green"
-							onClick={() => {
-								imageTab ? void handleAddFromImage() : void handleAdd();
-							}}
+							onClick={handleAdd}
 						>
 							Ya
 						</Button>
@@ -221,9 +168,9 @@ export const AddPengeluaranLog = ({ modalOpen, modalClose }: modalAlertProps) =>
 							</TabList>
 							<TabPanels>
 								<TabPanel>
-									<ManualForm selectedCategories={selectedCategories} handleCategories={(v) => setSelectedCategories(v)} setNewData={setNewData} newData={newData} />
+									<ManualForm selectedBook={selectedBook} handleBookChange={handleBookChange} selectedCategories={selectedCategories} handleCategories={(v) => setSelectedCategories(v)} setNewData={setNewData} newData={newData} />
 								</TabPanel>
-								<TabPanel>{imageTab && <ImageForm parentData={dataFromImage} setImageFromData={setDataFromImage} />}</TabPanel>
+								<TabPanel>Fitur di tekdown hehehehe</TabPanel>
 							</TabPanels>
 						</Tabs>
 					</ModalBody>

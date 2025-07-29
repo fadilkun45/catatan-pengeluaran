@@ -12,12 +12,15 @@ import { PengeluaranListLogType } from "../../Types/PengeluaranListLog"
 import { DetailAllLogType } from "../../Types/DetailAllLog"
 import { DetailLog } from "../../components/DetailLog"
 import { CategoriesLogType } from "../../Types/CategoriesLog"
+import { useBookStore } from "../../store/BookStore"
 
 
 const KategoriDetail = () => {
     const { isOpen: modalSettings, onOpen: modalSettingsOpen, onClose: modalSettingsClose } = useDisclosure()
     const { isOpen: modalSettingsSuccess, onOpen: modalSettingsSuccessOpen, onClose: modalSettingsSuccessClose } = useDisclosure()
     const setLoading = useLoadingStore((state) => state.setLoading);
+      const {BookDetail , setActiveBooks } = useBookStore();
+    
     const toast = useToast()
     const [date, setDate] = useState<{
         firstDate: string;
@@ -37,7 +40,8 @@ const KategoriDetail = () => {
         name: '',
         desc: '',
         labelColor: '',
-        labelTextColor: ''
+        labelTextColor: '',
+        bookId: BookDetail?.id || 'default'
       })
 
     const category = useLiveQuery(() => {
@@ -52,6 +56,9 @@ const KategoriDetail = () => {
         setLoading(true)
         const query = db.pengeluaranLogs.where('createdAt').between(date.firstDate, date.lastDate, true, true)
             const result = query.filter(item => item?.categoriesId?.includes(category?.id)).toArray();
+        if (BookDetail?.id !== 'default') {
+            return result.then(items => items.filter(x => x.bookId === BookDetail.id));
+        }
             setLoading(false)
             return result;
     }, [date.firstDate, date.lastDate, category]);
