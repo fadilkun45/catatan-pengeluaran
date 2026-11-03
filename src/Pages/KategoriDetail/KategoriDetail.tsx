@@ -1,7 +1,5 @@
-import { Badge, Box, Button, Divider, HStack, Icon, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Spacer, Text, Textarea, VStack, useDisclosure, useToast } from "@chakra-ui/react"
-import { FiSettings } from "react-icons/fi"
+import { Box, Button, Divider, HStack, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Spacer, Text, Textarea, VStack, useDisclosure, useToast } from "@chakra-ui/react"
 import { ModalAlert } from "../../components/ModalAlert"
-import { useLoadingStore } from "../../store/Loading"
 import { useEffect, useState } from "react"
 import dayjs from "dayjs"
 import { useLiveQuery } from "dexie-react-hooks"
@@ -18,8 +16,7 @@ import { useBookStore } from "../../store/BookStore"
 const KategoriDetail = () => {
     const { isOpen: modalSettings, onOpen: modalSettingsOpen, onClose: modalSettingsClose } = useDisclosure()
     const { isOpen: modalSettingsSuccess, onOpen: modalSettingsSuccessOpen, onClose: modalSettingsSuccessClose } = useDisclosure()
-    const setLoading = useLoadingStore((state) => state.setLoading);
-      const {BookDetail , setActiveBooks } = useBookStore();
+    const { BookDetail } = useBookStore();
     
     const toast = useToast()
     const [date, setDate] = useState<{
@@ -44,27 +41,16 @@ const KategoriDetail = () => {
         bookId: BookDetail?.id || 'default'
       })
 
-    const category = useLiveQuery(() => {
-        setLoading(true)
-        const id = parseInt(searchParams.get("id"))
-        const result = db.categoriesLog.get(id)
-            setLoading(false)
-            return result;
-    }, []);
+    const category = useLiveQuery(() => db.categoriesLog.get(Number(searchParams.get("id"))), []);
 
-    const items = useLiveQuery(() => {
-        setLoading(true)
-        const query = db.pengeluaranLogs.where('createdAt').between(date.firstDate, date.lastDate, true, true)
-            const result = query.filter(item => item?.categoriesId?.includes(category?.id)).toArray();
-        if (BookDetail?.id !== 'default') {
-            return result.then(items => items.filter(x => x.bookId === BookDetail.id));
-        }
-            setLoading(false)
-            return result;
-    }, [date.firstDate, date.lastDate, category]);
+    // BookDetail is a dependency so switching book refreshes the list.
+    const items = useLiveQuery(() => db.pengeluaranLogs
+        .where('createdAt').between(date.firstDate, date.lastDate, true, true)
+        .filter(item => !!category?.id && !!item?.categoriesId?.includes(category.id) && (BookDetail.id === 'default' || item.bookId === BookDetail.id))
+        .toArray(),
+    [date.firstDate, date.lastDate, category, BookDetail]);
     
     useEffect(() => {
-        setLoading(true)
         const temp1: PengeluaranListLogType[] = [];
         let temp2: DetailAllLogType = {
             totalLog: 0,
@@ -93,16 +79,14 @@ const KategoriDetail = () => {
 
         setLogTrx(temp1);
         setInformationDetail(temp2);
-        setEditCategory(category)
-        setLoading(false)
+        if (category) setEditCategory(category)
     }, [items]);
 
 
-    const handleEdit = () => {
-        if(!category.id) return
-        
+    const handleEdit = async () => {
+        if (!category?.id) return
         try {
-          void db.categoriesLog.update(category.id, { ...editCategory, labelColor: category.labelColor, labelTextColor: category.labelTextColor })
+          await db.categoriesLog.update(category.id, { ...editCategory, labelColor: category.labelColor, labelTextColor: category.labelTextColor })
           modalSettingsClose(); modalSettingsSuccessOpen()
         } catch (error) {
           toast({
@@ -132,7 +116,7 @@ const KategoriDetail = () => {
                         <Button colorScheme='gray' mr={3} onClick={() => modalSettingsClose()}>
                             Batal
                         </Button>
-                        <Button colorScheme="green" onClick={handleEdit}>Edit</Button>
+                        <Button colorScheme="green" onClick={() => void handleEdit()}>Edit</Button>
                     </ModalFooter>
                 </ModalContent>
             </Modal>
@@ -217,7 +201,7 @@ const KategoriDetail = () => {
                             </HStack>
 
                             {item?.data?.map((details) => (
-                                <DetailLog item={details} />
+                                <DetailLog key={details.id} item={details} />
                             ))}
                         </VStack>
                     </VStack>

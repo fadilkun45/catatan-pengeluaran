@@ -1,4 +1,3 @@
-import { Badge, HStack } from '@chakra-ui/react';
 import { ResponsivePie } from '@nivo/pie';
 import { HelperFunction } from '../lib/HelperFunc';
 import { useEffect, useState } from 'react';
@@ -23,7 +22,7 @@ const PieChart = ({ data }: { data: any }) => {
       <ResponsivePie
         data={filteredData}
         colors={{ datum: 'data.color' }}
-        margin={{ top: 40, right: window.screen.availWidth >= 1280 ? 80 : 40, bottom: 60, left: window.screen.availWidth >= 1280 ? 80 : 40 }}
+        margin={{ top: 10, right: 10, bottom: 10, left: 10 }}
         innerRadius={0.5}
         tooltip={({ datum }) => {
           return (
@@ -88,13 +87,6 @@ const PieChart = ({ data }: { data: any }) => {
       //   },
       // ]}
       />
-      <HStack marginTop={["-100px", "-30px"]} justifyContent="center"  wrap="wrap">
-        {
-          filteredData?.map((x) => {
-              return <Badge px="3" py="3px" color={x?.colorText} background={x?.color} rounded="full">{x?.id}</Badge>
-          })
-        }
-      </HStack>
     </>
   );
 };

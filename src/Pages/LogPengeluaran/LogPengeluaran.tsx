@@ -1,4 +1,4 @@
-import { Box, Checkbox, Divider, HStack, Input, Spacer, Text, VStack } from '@chakra-ui/react';
+import { Box, Checkbox, HStack, Input, Text, VStack } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../services/db/db';
@@ -30,7 +30,7 @@ const LogPengeluaran = () => {
     const [selectedCategories, setSelectedCategories] = useState<OptionsType[]>([]);
     const [availableOptions, setAvailableOptions] = useState<OptionsType[]>([]);
     const [withSpecialCategories, setWithSpecialCategories] = useState(false)
-    const { BookDetail, setActiveBooks } = useBookStore();
+    const { BookDetail } = useBookStore();
 
 
     const items = useLiveQuery(async () => {
@@ -72,7 +72,7 @@ const LogPengeluaran = () => {
             return result;
         }
 
-    }, [date.firstDate, date.lastDate, selectedCategories, withSpecialCategories]);
+    }, [date.firstDate, date.lastDate, selectedCategories, withSpecialCategories, BookDetail]);
 
     const categories = useLiveQuery(() => {
         const result = db.categoriesLog.toArray();
@@ -154,7 +154,7 @@ const LogPengeluaran = () => {
 
                 <HStack w="full" mt="3" display="flex" >
                     <Text mb="2" ml="9px" color="gray.600">Kategori Spesial</Text>
-                    <Checkbox fontSize="14px" marginTop="-4px" colorScheme={"green"} checked={withSpecialCategories} onChange={(v) => setWithSpecialCategories(v.target.checked ? true : false)} variant='outline' />
+                    <Checkbox fontSize="14px" marginTop="-4px" colorScheme={"green"} isChecked={withSpecialCategories} onChange={(v) => setWithSpecialCategories(v.target.checked ? true : false)} variant='outline' />
                 </HStack>
 
                 <VStack w="full">
@@ -183,8 +183,8 @@ const LogPengeluaran = () => {
                     </VStack>
                 </HStack>
 
-                {logTrx?.map((item, key) => (
-                    <GroupData item={item} key={key} />
+                {logTrx?.map((item) => (
+                    <GroupData item={item} key={item.date} />
                 ))}
             </VStack>
         </>

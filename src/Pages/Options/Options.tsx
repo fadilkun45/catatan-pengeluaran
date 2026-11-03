@@ -2,15 +2,16 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 
-import { Box, Button, Divider, HStack, Icon, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Spacer, Text, Textarea, VStack, useDisclosure, useToast } from '@chakra-ui/react';
+import { Box, Button, Divider, HStack, Icon, IconButton, Input, theme as baseTheme, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Spacer, Text, VStack, useDisclosure, useToast } from '@chakra-ui/react';
 import { GoDownload } from 'react-icons/go';
 import { ModalAlert } from '../../components/ModalAlert';
 import { useEffect, useState } from 'react';
-import { BsToggle2Off, BsToggleOff, BsToggleOn } from 'react-icons/bs';
-import { FiAlertTriangle, FiBookOpen } from 'react-icons/fi';
+import { BsToggle2Off, BsToggleOn } from 'react-icons/bs';
+import { FiAlertTriangle, FiBookOpen, FiCheck, FiEdit2, FiTrash, FiX } from 'react-icons/fi';
 import { HelperFunction } from '../../lib/HelperFunc';
-import { useBookStore } from '../../store/BookStore';
+import { DEFAULT_BOOK, useBookStore } from '../../store/BookStore';
 import { BookLogsType } from '../../Types/BookLogs';
+import { THEMES, ThemeColor, useThemeStore } from '../../store/ThemeStore';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../services/db/db';
 
@@ -39,6 +40,9 @@ const Options = () => {
 
 
 	const [newBookName, setNewBookName] = useState('');
+	const { color: themeColor, setColor: setThemeColor } = useThemeStore();
+	const [editingBook, setEditingBook] = useState<BookLogsType | null>(null);
+	const [deletingBook, setDeletingBook] = useState<BookLogsType | null>(null);
 
 	useEffect(() => {
 		const handler = (e: { preventDefault: () => void }) => {
@@ -92,9 +96,10 @@ const Options = () => {
 		setModalSettingLimitAlert(true)
 	}
 	const handleNewBook = async () => {
+		if (!newBookName.trim()) return toast({ title: 'Nama buku wajib diisi', status: 'warning', duration: 1500, position: 'top-right' });
 		const newBook = {
 			id: `book-${Date.now()}`,
-			name: newBookName,
+			name: newBookName.trim(),
 			createdAt: new Date().toISOString(),
 		};
 
@@ -105,9 +110,6 @@ const Options = () => {
 			// Update Zustand
 			setActiveBooks(newBook);
 
-			// Opsional: simpan ke localStorage jika masih dipakai sementara
-			localStorage.setItem(import.meta.env.VITE_REACT_BOOKS, JSON.stringify(newBook));
-
 			toast({ title: 'Buku baru ditambahkan!', status: 'success', duration: 1000, position: 'top-right' });
 			setNewBookName('');
 			modalConfirmCloseBook();
@@ -116,6 +118,43 @@ const Options = () => {
 			toast({ title: 'Gagal menambahkan buku.', status: 'error' });
 		}
 	};
+
+	const handleRenameBook = async () => {
+		if (!editingBook) return;
+		const name = editingBook.name.trim();
+		if (!name) return toast({ title: 'Nama buku wajib diisi', status: 'warning', duration: 1500, position: 'top-right' });
+		try {
+			await db.books.update(editingBook.id, { name });
+			// nama buku aktif disimpan terpisah di localStorage, jadi ikut diperbarui
+			if (BookDetail?.id === editingBook.id) setActiveBooks({ ...BookDetail, name });
+			setEditingBook(null);
+		} catch (error) {
+			toast({ title: 'Gagal mengganti nama buku.', status: 'error', position: 'top-right' });
+		}
+	};
+
+	// Buku hanya bisa dihapus kalau tidak ada catatan pengeluaran di dalamnya, supaya tidak ada data yang hilang.
+	const handleDeleteBook = async () => {
+		if (!deletingBook) return;
+		try {
+			const deleted = await db.transaction('rw', [db.books, db.categoriesLog, db.pengeluaranLogs], async () => {
+				if (await db.pengeluaranLogs.where('bookId').equals(deletingBook.id).count()) return false;
+				await db.categoriesLog.where('bookId').equals(deletingBook.id).delete();
+				await db.books.delete(deletingBook.id);
+				return true;
+			});
+			if (!deleted) {
+				toast({ title: `Buku "${deletingBook.name}" masih berisi catatan. Hapus catatannya dulu.`, status: 'warning', position: 'top-right' });
+			} else {
+				if (BookDetail?.id === deletingBook.id) setActiveBooks(DEFAULT_BOOK);
+				toast({ title: 'Buku dihapus', status: 'success', duration: 1500, position: 'top-right' });
+			}
+			setDeletingBook(null);
+		} catch (error) {
+			toast({ title: 'Gagal menghapus buku.', status: 'error', position: 'top-right' });
+		}
+	};
+
 	return (
 		<>
 			<ModalAlert modalClose={modalAlertLogoutClose} modalOpen={modalAlertLogout} title="sukses" subtitle="setings kategori berhasil" />
@@ -167,29 +206,8 @@ const Options = () => {
 				</ModalContent>
 			</Modal>
 
-			<ModalAlert modalClose={() => { modalAlertDownloadClose(); window.location.reload(); }} modalOpen={modalAlertDownload} title="sukses" subtitle="download app berhasil " />
-			<Modal isOpen={modalConfirmDownload} onClose={modalConfirmDownloadClose}>
-				<ModalOverlay />
-				<ModalContent>
-					<ModalHeader>Download App</ModalHeader>
-					<ModalCloseButton />
-					<ModalBody>
-						<Text>dengan mendownload app ini anda dapat mencatat pengeluaran keuangan dimanapun kapanpun secara offline</Text>
-					</ModalBody>
-					<ModalFooter>
-						<Button colorScheme="gray" mr={3} onClick={modalConfirmDownloadClose}>
-							Batal
-						</Button>
-
-						<Button colorScheme="green" onClick={(evt) => handleOnInstall(evt)}>
-							Download
-						</Button>
-					</ModalFooter>
-				</ModalContent>
-			</Modal>
-
 			<ModalAlert modalClose={() => modalAlertToggleDetailClose()} modalOpen={modalAlertToggleDetail} title="sukses" subtitle={`Ubah default Detail menjadi ${toggleDetail ? 'Terbuka' : 'Tertutup'}`} />
-			<Modal isOpen={modalConfirmToggleDetail} onClose={modalAlertToggleDetailClose}>
+			<Modal isOpen={modalConfirmToggleDetail} onClose={modalConfirmToggleDetailClose}>
 				<ModalOverlay />
 				<ModalContent>
 					<ModalHeader>Ubah Default Detail</ModalHeader>
@@ -238,61 +256,98 @@ const Options = () => {
 				</ModalContent>
 			</Modal>
 
-			<Modal isOpen={modalConfirmBook} onClose={modalConfirmCloseBook} size="md" isCentered>
+			<Modal isOpen={!!deletingBook} onClose={() => setDeletingBook(null)} isCentered>
 				<ModalOverlay />
 				<ModalContent>
-					<ModalHeader>Ganti / Tambah Buku Catatan</ModalHeader>
+					<ModalHeader>Hapus Buku</ModalHeader>
 					<ModalCloseButton />
 					<ModalBody>
-						<VStack align="stretch" spacing={3}>
-							<Text fontSize="sm">Pilih buku catatan:</Text>
-							{bookOptions?.map((book) => (
-								<Box
-									key={book.id}
-									px={4}
-									py={2}
-									borderRadius="md"
-									borderWidth={1}
-									background={BookDetail?.id === book.id ? 'green.500' : 'transparent'}
-									color={BookDetail?.id === book.id ? 'white' : ''}
-									cursor="pointer"
-									_hover={{ bg: 'blue.50' }}
-									onClick={() => {
-										setActiveBooks(book);
-										localStorage.setItem(import.meta.env.VITE_REACT_BOOKS, JSON.stringify(book));
-										toast({ title: `Berhasil ganti ke ${book.name}`, status: 'success', duration: 1000 });
-										modalConfirmCloseBook();
-									}}
-								>
-									{book.name}
-								</Box>
-							))}
-
-							<Divider />
-
-							<Text fontSize="sm" mt={2}>
-								Tambah buku baru:
-							</Text>
-							<Input
-								placeholder="Nama buku baru"
-								size="sm"
-								value={newBookName}
-								onChange={(e) => setNewBookName(e.target.value)}
-							/>
-							<Button
-								colorScheme="green"
-								size="sm"
-								onClick={() => void handleNewBook()}
-							>
-								Tambah Buku
-							</Button>
-						</VStack>
+						<Text>Hapus buku <b>{deletingBook?.name}</b>? Kategori di buku ini ikut terhapus.</Text>
 					</ModalBody>
 					<ModalFooter>
-						<Button colorScheme="green" onClick={modalConfirmCloseBook}>
-							Tutup
-						</Button>
+						<Button colorScheme="gray" mr={3} onClick={() => setDeletingBook(null)}>Batal</Button>
+						<Button colorScheme="red" onClick={() => void handleDeleteBook()}>Hapus</Button>
 					</ModalFooter>
+				</ModalContent>
+			</Modal>
+
+			<Modal isOpen={modalConfirmBook} onClose={() => { setEditingBook(null); modalConfirmCloseBook(); }} size="md" isCentered>
+				<ModalOverlay />
+				<ModalContent>
+					<ModalHeader>Kelola Buku Catatan</ModalHeader>
+					<ModalCloseButton />
+					<ModalBody pb={6}>
+						<VStack align="stretch" spacing={2}>
+							<Text fontSize="sm" color="gray.600">Pilih buku catatan</Text>
+							{bookOptions?.map((book) => {
+								const active = BookDetail?.id === book.id;
+								if (editingBook?.id === book.id) {
+									return (
+										<HStack key={book.id}>
+											<Input
+												autoFocus
+												fontSize="sm"
+												value={editingBook.name}
+												onChange={(e) => setEditingBook({ ...editingBook, name: e.target.value })}
+												onKeyDown={(e) => { if (e.key === 'Enter') void handleRenameBook(); if (e.key === 'Escape') setEditingBook(null); }}
+											/>
+											<IconButton aria-label="Simpan nama" icon={<FiCheck />} colorScheme="green" onClick={() => void handleRenameBook()} />
+											<IconButton aria-label="Batal" icon={<FiX />} variant="ghost" onClick={() => setEditingBook(null)} />
+										</HStack>
+									);
+								}
+								return (
+									<HStack
+										key={book.id}
+										pr={1}
+										borderRadius="md"
+										borderWidth={active ? 2 : 1}
+										borderColor={active ? 'green.500' : 'gray.200'}
+										bg={active ? 'green.50' : 'transparent'}
+										_hover={{ bg: active ? 'green.50' : 'gray.50' }}
+									>
+										<HStack
+											as="button"
+											flex={1}
+											px={4}
+											py={3}
+											textAlign="left"
+											fontWeight={active ? 'bold' : 'normal'}
+											onClick={() => {
+												setActiveBooks(book);
+												toast({ title: `Berhasil ganti ke ${book.name}`, status: 'success', duration: 1000, position: 'top-right' });
+												modalConfirmCloseBook();
+											}}
+										>
+											<Text fontSize="sm">{book.name}</Text>
+											<Spacer />
+											{active && <Icon as={FiCheck} color="green.500" />}
+										</HStack>
+										<IconButton aria-label={`Ganti nama ${book.name}`} icon={<FiEdit2 />} size="sm" variant="ghost" onClick={() => setEditingBook(book)} />
+										{book.id !== DEFAULT_BOOK.id && (
+											<IconButton aria-label={`Hapus ${book.name}`} icon={<FiTrash />} size="sm" variant="ghost" colorScheme="red" onClick={() => setDeletingBook(book)} />
+										)}
+									</HStack>
+								);
+							})}
+
+							<Divider my={3} />
+
+							<Text fontSize="sm" color="gray.600">Tambah buku baru</Text>
+							<HStack>
+								<Input
+									placeholder="Nama buku baru"
+									fontSize="sm"
+									value={newBookName}
+									onChange={(e) => setNewBookName(e.target.value)}
+									onKeyDown={(e) => { if (e.key === 'Enter') void handleNewBook(); }}
+								/>
+								<Button colorScheme="green" flexShrink={0} onClick={() => void handleNewBook()}>
+									Tambah
+								</Button>
+							</HStack>
+						</VStack>
+					</ModalBody>
 				</ModalContent>
 			</Modal>
 
@@ -302,8 +357,7 @@ const Options = () => {
                     <Image src={Dummny} objectFit="cover" loading='eager' mx="auto" my="12px" w="150px" h="150px" border="1px solid" borderColor="green.400" rounded="full" />
                     <Text fontSize="xl" fontWeight="bold">Faldi Ramadhan</Text>
                 </VStack> */}
-				<Divider />
-				<VStack w="full">
+				<VStack w="full" mt="10px" divider={<Divider />}>
 					{supportsPWA && (
 						<HStack w="full" px="12px" py="6px" onClick={modalConfirmDownloadOpen} cursor="pointer">
 							<Text fontSize="sm">Download</Text>
@@ -312,36 +366,48 @@ const Options = () => {
 						</HStack>
 					)}
 
-					<Divider />
-
-					<HStack w="full" px="12px" py="6px" onClick={modalConfirmToggleDetailOpen}>
+					<HStack w="full" px="12px" py="6px" cursor="pointer" onClick={modalConfirmToggleDetailOpen}>
 						<Text fontSize="sm">Buka Detail Secara Default</Text>
 						<Spacer />
 						<Icon fontSize="18px" as={toggleDetail ? BsToggleOn : BsToggle2Off} />
 					</HStack>
-					<Divider />
 
-					<HStack w="full" px="12px" py="6px" onClick={() => setModalSettingLimit(true)}>
+					<HStack w="full" px="12px" py="6px" cursor="pointer" onClick={() => setModalSettingLimit(true)}>
 						<Text fontSize="sm">Tambah Limit Pengeluaran Harian</Text>
 						<Spacer />
 						<Icon fontSize="18px" as={FiAlertTriangle} />
 					</HStack>
 
-					<HStack w="full" px="12px" py="6px" onClick={() => modalConfirmOpenBook()}>
-						<Text fontSize="sm">Tambah Buku / ganti buku</Text>
+					<HStack w="full" px="12px" py="6px" cursor="pointer" onClick={() => modalConfirmOpenBook()}>
+						<Text fontSize="sm">Ganti / Tambah Buku</Text>
 						<Spacer />
 						<Icon fontSize="18px" as={FiBookOpen} />
 					</HStack>
 
-					{/* <HStack w="full" px="12px" cursor="pointer" py="6px" onClick={modalConfirmLogoutOpen}>
-                        <Text fontSize="sm">Logout</Text>
-                        <Spacer />
-                        <Icon fontSize="18px" as={IoExitOutline} />
-                    </HStack>
-                    <Divider /> */}
-
-					<Text mt="40vh">2024 &copy; Faldi Ramadhan</Text>
+					<VStack w="full" px="12px" py="6px" align="stretch">
+						<Text fontSize="sm">Warna Tema</Text>
+						<HStack spacing={3} flexWrap="wrap">
+							{(Object.keys(THEMES) as ThemeColor[]).map((c) => (
+								<Box
+									as="button"
+									key={c}
+									aria-label={`Tema ${THEMES[c]}`}
+									title={THEMES[c]}
+									w="32px"
+									h="32px"
+									rounded="full"
+									bg={baseTheme.colors[c][500]}
+									outline={themeColor === c ? '3px solid' : 'none'}
+									outlineColor="gray.700"
+									outlineOffset="2px"
+									onClick={() => setThemeColor(c)}
+								/>
+							))}
+						</HStack>
+					</VStack>
 				</VStack>
+
+				<Text mt="40vh" fontSize="sm" color="gray.500">2024 &copy; Faldi Ramadhan</Text>
 			</VStack>
 		</>
 	);

@@ -3,11 +3,13 @@ import { HelperFunction } from '../lib/HelperFunc'
 import { PengeluaranLogChartType } from '../Types/ChartPengeluaranLog'
 import dayjs from 'dayjs'
 import { useEffect, useState } from 'react'
+import { useToken } from '@chakra-ui/react'
 
 
 const LineChart = ({ data }: { data: PengeluaranLogChartType[] }) => {
     const [limit] = useState(JSON.parse(localStorage.getItem(import.meta.env.VITE_REACT_DEFAULT_LIMIT as string)) || 0)
     const [makers, setMakers] = useState([])
+    const brand = useToken('colors', 'green.500')
 
     
     useEffect(() => {
@@ -36,13 +38,13 @@ const LineChart = ({ data }: { data: PengeluaranLogChartType[] }) => {
             keys={['dibawahLimit', 'diatasLimit']}
             markers={makers}
             indexBy="date"
-            margin={{ top: 50, right: 12, bottom: 50, left: 60 }}
+            margin={{ top: 16, right: 8, bottom: 28, left: 44 }}
             padding={0.3}
             innerPadding={1}
             valueScale={{ type: 'linear' }}
             indexScale={{ type: 'band', round: true }}
             // ()
-            colors={({ data, id }) => ( id === "diatasLimit" && limit > 0 ? (((100 * data.total ) / (limit * 2)) > 100 ?   '#E53E3E' : "#D69E2E" ) : 'rgb(56, 161, 105)')} // Set color based on limit
+            colors={({ data, id }) => ( id === "diatasLimit" && limit > 0 ? (((100 * data.total ) / (limit * 2)) > 100 ?   '#E53E3E' : "#D69E2E" ) : brand)} // Set color based on limit
             tooltip={({ data }) => {
                 return (
                     <div
@@ -58,6 +60,8 @@ const LineChart = ({ data }: { data: PengeluaranLogChartType[] }) => {
             }}
             axisTop={null}
             axisRight={null}
+            axisLeft={{ tickValues: 4, format: (v: number) => v >= 1000000 ? `${v / 1000000}jt` : v >= 1000 ? `${v / 1000}rb` : `${v}` }}
+            gridYValues={4}
             axisBottom={{
                 format: v => dayjs(v).format("ddd")
             }}

@@ -1,4 +1,5 @@
 import ReactSelect from "react-select"
+import { useToken } from "@chakra-ui/react"
 
 interface DropdownProps {
     value: unknown,
@@ -8,6 +9,7 @@ interface DropdownProps {
 }
 
 export const Dropdown = ({ value, onChange, options, isMultiple = false }: DropdownProps) => {
+    const [chip, primary] = useToken('colors', ['green.800', 'green.400'])
 
 
     return (
@@ -20,7 +22,7 @@ export const Dropdown = ({ value, onChange, options, isMultiple = false }: Dropd
             multiValue: (base) => ({
                 ...base,
                 color: "#FFFF",
-                background: "#22543D",
+                background: chip,
             }),
             multiValueLabel: (base) => ({
                 ...base,
@@ -32,7 +34,7 @@ export const Dropdown = ({ value, onChange, options, isMultiple = false }: Dropd
                 borderRadius: 6,
                 colors: {
                     ...theme.colors,
-                    primary: "#48BB78"
+                    primary
                 }
             })}
             value={value} onChange={onChange} options={options} isMulti={isMultiple}  />

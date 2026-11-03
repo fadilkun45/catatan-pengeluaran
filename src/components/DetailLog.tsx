@@ -1,13 +1,15 @@
 import { Badge, Button, HStack, Icon, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Spacer, Text, VStack, useDisclosure, useToast } from '@chakra-ui/react';
 import { HelperFunction } from '../lib/HelperFunc';
 import { PengeluaranLogType } from '../Types/PengeluaranLog';
-import { BiX } from 'react-icons/bi';
+import { BiPencil, BiX } from 'react-icons/bi';
 import { db } from '../services/db/db';
+import { deleteLog } from '../services/sync';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useState } from 'react';
+import { AddPengeluaranLog } from '../Pages/AddPengeluaranLog/AddpengeluaranLog';
 
 export const DetailLog = ({ item }: { item: PengeluaranLogType }) => {
   const { isOpen: modalConfirm, onOpen: modalConfirmOpen, onClose: modalConfirmClose } = useDisclosure();
+  const { isOpen: modalEdit, onOpen: modalEditOpen, onClose: modalEditClose } = useDisclosure();
   const toast = useToast();
 
   const categories = useLiveQuery(() => {
@@ -15,18 +17,18 @@ export const DetailLog = ({ item }: { item: PengeluaranLogType }) => {
     return result;
   }, []);
 
-  const handleAdd = () => {
+  const handleDelete = async () => {
     try {
-      void db.pengeluaranLogs.delete(item.id);
+      await deleteLog(item);
       modalConfirmClose();
       toast({
-        colorScheme: 'green',
+        status: 'success',
         title: 'Hapus log pengeluaran berhasil',
         position: 'top-right',
       });
     } catch (error) {
       toast({
-        colorScheme: 'red',
+        status: 'error',
         title: 'error log hapus pengeluaran',
         position: 'top-right',
       });
@@ -35,19 +37,20 @@ export const DetailLog = ({ item }: { item: PengeluaranLogType }) => {
 
   return (
     <>
+      {modalEdit && <AddPengeluaranLog modalOpen={modalEdit} modalClose={modalEditClose} editItem={item} />}
       <Modal isOpen={modalConfirm} onClose={() => modalConfirmClose()}>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Hapus Log</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <Text>Anda yakin ingin menyimpan kategori berikut ?</Text>
+            <Text>Anda yakin ingin menghapus log <b>{item.name}</b> ({HelperFunction.FormatToRupiah(item.amount)}) ?</Text>
           </ModalBody>
           <ModalFooter>
             <Button colorScheme="gray" mr={3} onClick={() => modalConfirmClose()}>
               Tidak
             </Button>
-            <Button colorScheme="green" onClick={() => void handleAdd()}>
+            <Button colorScheme="green" onClick={() => void handleDelete()}>
               Ya
             </Button>
           </ModalFooter>
@@ -66,13 +69,16 @@ export const DetailLog = ({ item }: { item: PengeluaranLogType }) => {
                item.categoriesId?.map((x) => {
               const categorieSelected = categories?.filter(categorie => categorie.id === x)[0]
               if (categorieSelected?.name) {
-                return <Badge px="3" py="3px" color={categorieSelected?.labelTextColor} background={categorieSelected?.labelColor} rounded="full" >{categorieSelected?.name}</Badge>
+                return <Badge key={x} px="3" py="3px" color={categorieSelected?.labelTextColor} background={categorieSelected?.labelColor} rounded="full" >{categorieSelected?.name}</Badge>
               }
             })
           }
           </HStack>
           <Spacer />
-            <Button size="sm" rounded="6px" h="30px" onClick={modalConfirmOpen}>
+            <Button size="sm" rounded="6px" h="30px" aria-label="Edit" onClick={modalEditOpen}>
+              <Icon as={BiPencil} />
+            </Button>
+            <Button size="sm" rounded="6px" h="30px" aria-label="Hapus" onClick={modalConfirmOpen}>
               <Icon as={BiX} />
             </Button>
         </HStack>
