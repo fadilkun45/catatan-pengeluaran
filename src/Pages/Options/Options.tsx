@@ -92,9 +92,10 @@ const Options = () => {
 		setModalSettingLimitAlert(true)
 	}
 	const handleNewBook = async () => {
+		if (!newBookName.trim()) return toast({ title: 'Nama buku wajib diisi', status: 'warning', duration: 1500, position: 'top-right' });
 		const newBook = {
 			id: `book-${Date.now()}`,
-			name: newBookName,
+			name: newBookName.trim(),
 			createdAt: new Date().toISOString(),
 		};
 
@@ -104,9 +105,6 @@ const Options = () => {
 
 			// Update Zustand
 			setActiveBooks(newBook);
-
-			// Opsional: simpan ke localStorage jika masih dipakai sementara
-			localStorage.setItem(import.meta.env.VITE_REACT_BOOKS, JSON.stringify(newBook));
 
 			toast({ title: 'Buku baru ditambahkan!', status: 'success', duration: 1000, position: 'top-right' });
 			setNewBookName('');
@@ -259,7 +257,6 @@ const Options = () => {
 									_hover={{ bg: 'blue.50' }}
 									onClick={() => {
 										setActiveBooks(book);
-										localStorage.setItem(import.meta.env.VITE_REACT_BOOKS, JSON.stringify(book));
 										toast({ title: `Berhasil ganti ke ${book.name}`, status: 'success', duration: 1000 });
 										modalConfirmCloseBook();
 									}}

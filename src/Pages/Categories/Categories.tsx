@@ -41,26 +41,27 @@ const Categories = () => {
   }, [BookDetail])
 
 
-  const handleAdd = () => {
-    if (!color || !newCategories.name || !colorText) {
-      if (!newCategories.name) {
+  const handleAdd = async () => {
+    if (!color || !newCategories.name.trim() || !colorText) {
+      if (!newCategories.name.trim()) {
         toast({
           'colorScheme': "red",
           'title': "nama wajib di isi",
           'position': 'top-right'
         })
       }
-      if (!color) {
+      if (!color || !colorText) {
         toast({
           'colorScheme': "red",
           'title': "warna label dan text wajib di isi",
           'position': 'top-right'
         })
       }
+      setModalSubmit(false)
       return
     }
     try {
-      void db.categoriesLog.add({ ...newCategories, labelColor: color, labelTextColor: colorText })
+      await db.categoriesLog.add({ ...newCategories, name: newCategories.name.trim(), labelColor: color, labelTextColor: colorText })
       setModalSubmit(false); setModalSubmitSuccess(true)
       setNewCategories({
         createdAt: dayjs().format("YYYY-MM-DD"),
@@ -68,6 +69,7 @@ const Categories = () => {
         desc: '',
         labelColor: '',
         labelTextColor: '',
+        isSpecialCategories: false,
         bookId: BookDetail?.id || 'default'
       })
       setColor('')
@@ -81,9 +83,10 @@ const Categories = () => {
     }
   }
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
+    if (detailDelete?.id === undefined) return
     try {
-      void db.categoriesLog.delete(detailDelete?.id)
+      await db.categoriesLog.delete(detailDelete.id)
       modalConfirmDeleteClose()
       modalConfirmDeleteSuccessOpen()
     } catch (error) {
@@ -110,7 +113,7 @@ const Categories = () => {
             <Button colorScheme='gray' mr={3} onClick={() => setModalSubmit(false)}>
               Batal
             </Button>
-            <Button colorScheme="green" onClick={handleAdd}>Submit</Button>
+            <Button colorScheme="green" onClick={() => void handleAdd()}>Submit</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
@@ -142,12 +145,12 @@ const Categories = () => {
             <Button colorScheme='gray' mr={3} onClick={modalConfirmDeleteClose}>
               Batal
             </Button>
-            <Button colorScheme="green" onClick={handleDelete}>Submit</Button>
+            <Button colorScheme="green" onClick={() => void handleDelete()}>Hapus</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
 
-      <Modal isOpen={modalConfirmDeleteSuccess} onClose={modalConfirmDeleteSuccessOpen}>
+      <Modal isOpen={modalConfirmDeleteSuccess} onClose={modalConfirmDeleteSuccessClose}>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Hapus Kategori</ModalHeader>
@@ -195,7 +198,7 @@ const Categories = () => {
           <HStack w="full" mt="3" display="flex" flexDirection="column">
             <HStack w="full">
               <Text mb="2" color="gray.600">Kategori Spesial</Text>
-              <Checkbox fontSize="14px" marginTop="-4px" colorScheme={"green"} checked={newCategories.isSpecialCategories} onChange={(v) => setNewCategories({ ...newCategories, isSpecialCategories: v.target.checked ? true : false })} variant='outline' />
+              <Checkbox fontSize="14px" marginTop="-4px" colorScheme={"green"} isChecked={!!newCategories.isSpecialCategories} onChange={(v) => setNewCategories({ ...newCategories, isSpecialCategories: v.target.checked ? true : false })} variant='outline' />
             </HStack>
             <Text w="full" mb="2" color="gray.600" fontSize="small">Data kategori spesial tidak akan masuk kedalam total harian</Text>
           </HStack>

@@ -1,10 +1,10 @@
-import { Button, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Tab, TabList, TabPanel, TabPanels, Tabs, Text, useDisclosure, useToast } from '@chakra-ui/react';
+import { Button, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Text, useDisclosure, useToast } from '@chakra-ui/react';
 import { useState } from 'react';
 import { PengeluaranLogType } from '../../Types/PengeluaranLog';
 import { db } from '../../services/db/db';
+import { addLog } from '../../services/sync';
 import dayjs from 'dayjs';
 import { HelperFunction } from '../../lib/HelperFunc';
-import { useLiveQuery } from 'dexie-react-hooks';
 import { OptionsType } from '../../Types/OptionType';
 import ManualForm from './ManualForm';
 import { useBookStore } from '../../store/BookStore';
@@ -14,100 +14,61 @@ interface modalAlertProps {
 	modalClose: () => void;
 }
 
+// Today's total as the dashboard shows it: non-special logs in the active book ('default' shows every book).
+const todayTotal = async (activeBookId: string) => {
+	const today = dayjs().format('YYYY-MM-DD');
+	const logs = await db.pengeluaranLogs.where('createdAt').equals(today).toArray();
+	return logs.filter((x) => !x.isSpecialCategories && (activeBookId === 'default' || x.bookId === activeBookId)).reduce((t, x) => t + x.amount, 0);
+};
+
 export const AddPengeluaranLog = ({ modalOpen, modalClose }: modalAlertProps) => {
 	const toast = useToast();
-			const { BookDetail, setActiveBooks } = useBookStore();
+	const { BookDetail } = useBookStore();
 	const { isOpen: modalConfirm, onOpen: modalConfirmOpen, onClose: modalConfirmClose } = useDisclosure();
 	const [newData, setNewData] = useState<PengeluaranLogType>({
 		amount: 0,
 		createdAt: dayjs().format('YYYY-MM-DD'),
 		name: '',
-		bookId: BookDetail?.id,
+		bookId: BookDetail.id,
 	});
-
 	const [selectedCategories, setSelectedCategories] = useState<OptionsType[]>([]);
-	const [dataFromImage, setDataFromImage] = useState<PengeluaranLogType[]>([]);
-	const [imageTab, setImageTab] = useState(false)
-	const currentExpense = useLiveQuery(() => {
-		const result = db.pengeluaranLogs
-			.where('createdAt')
-			.between(dayjs().format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD'), true, true)
-			.toArray()
-			.then((transaction) => transaction.filter((item) => !item.isSpecialCategories && (BookDetail?.id === 'default' ? true : item.bookId === BookDetail.id)).reduce((total, transaction) => total + transaction.amount, 0))
-		return result;
-	}, [BookDetail]);
-		const [selectedBook, setSelectedBook] = useState<any>({ value: BookDetail?.id, label: BookDetail?.name, detail: BookDetail });
+	const [selectedBook, setSelectedBook] = useState<OptionsType>({ value: BookDetail.id, label: BookDetail.name, detail: BookDetail });
+	const [saving, setSaving] = useState(false);
 
+	const limit = Number(JSON.parse(localStorage.getItem(import.meta.env.VITE_REACT_DEFAULT_LIMIT as string) || '0')) || 0;
 
+	const handleAdd = async () => {
+		const categoriesId = (selectedCategories ?? []).map((x) => x.value) as PengeluaranLogType['categoriesId'];
+		const isSpecialCategories = (selectedCategories ?? []).some((x) => x?.detail?.isSpecialCategories);
 
-	const [limit] = useState(JSON.parse(localStorage.getItem(import.meta.env.VITE_REACT_DEFAULT_LIMIT as string)) || 0);
-
-	const BeforeAdd = () => {
-		modalConfirmOpen();
-	};
-
-	const handleAdd =  () => {
-		let isSpecialCategories = false;
-		const categoriesId = selectedCategories?.map((x) => {
-			if (x?.detail?.isSpecialCategories) {
-				isSpecialCategories = true;
-			}
-			return x.value;
-		});
-
-		const currentExpenseNew: any = isSpecialCategories ? currentExpense : (currentExpense as unknown as number) + newData.amount;
-
+		setSaving(true);
 		try {
-			void db.pengeluaranLogs.add({ ...newData, categoriesId, isSpecialCategories }).then(() => {
-				if (newData.createdAt !== dayjs().format('YYYY-MM-DD')) return;
-
-				const currentExpensePercentage = (100 * currentExpenseNew) / limit;
-				console.log("test",currentExpensePercentage, "expense", currentExpenseNew);
-				console.log("test total cuyrrenct", currentExpense);
-
-				if (currentExpensePercentage > 100 && limit > 0) {
-					toast({
-						duration: 8000,
-						colorScheme: 'yellow',
-						title: `Pengeluaranmu hari ini sudah mencapai ${HelperFunction.FormatToRupiah(currentExpenseNew)}, melewati batas limit ${HelperFunction.FormatToRupiah(limit)}.`,
-						position: 'top-right',
-					});
-				}
-				if (currentExpensePercentage / (limit * 2) >= 200 && limit > 0) {
-					toast({
-						duration: 8000,
-						colorScheme: 'red',
-						title: `Peringatan Pengeluaranmu hari ini sudah mencapai ${HelperFunction.FormatToRupiah(currentExpenseNew)}, melewati batas limit ${HelperFunction.FormatToRupiah(limit)}.`,
-						position: 'top-right',
-					});
-				}
-			});
-
-			modalConfirmClose();
-			modalClose();
-			toast({
-				colorScheme: 'green',
-				title: 'tambah log pengeluaran berhasil',
-				position: 'top-right',
-			});
+			await addLog({ ...newData, name: newData.name.trim(), categoriesId, isSpecialCategories });
 		} catch (error) {
-			toast({
-				colorScheme: 'red',
-				title: 'error log tambah pengeluaran',
-				position: 'top-right',
-			});
+			toast({ colorScheme: 'red', title: 'Gagal menyimpan log pengeluaran', position: 'top-right' });
+			setSaving(false);
 			modalConfirmClose();
-			modalClose();
+			return;
+		}
+		modalConfirmClose();
+		modalClose();
+		toast({ colorScheme: 'green', title: 'tambah log pengeluaran berhasil', position: 'top-right' });
+
+		if (limit <= 0 || isSpecialCategories || newData.createdAt !== dayjs().format('YYYY-MM-DD')) return;
+		const total = await todayTotal(BookDetail.id);
+		const pct = (100 * total) / limit;
+		const pesan = `Pengeluaranmu hari ini sudah mencapai ${HelperFunction.FormatToRupiah(total)}, melewati batas limit ${HelperFunction.FormatToRupiah(limit)}.`;
+		if (pct >= 200) {
+			toast({ duration: 8000, colorScheme: 'red', title: `Peringatan! ${pesan}`, position: 'top-right' });
+		} else if (pct > 100) {
+			toast({ duration: 8000, colorScheme: 'yellow', title: pesan, position: 'top-right' });
 		}
 	};
 
-	const handleBookChange = (option: any) => {
-		setNewData({ ...newData, bookId: option.value });
+	const handleBookChange = (option: OptionsType) => {
+		setNewData({ ...newData, bookId: option.value as string });
 		setSelectedBook(option);
-		
-	}
-
-
+	};
 
 	return (
 		<>
@@ -123,10 +84,7 @@ export const AddPengeluaranLog = ({ modalOpen, modalClose }: modalAlertProps) =>
 						<Button colorScheme="gray" mr={3} onClick={() => modalConfirmClose()}>
 							Tidak
 						</Button>
-						<Button
-							colorScheme="green"
-							onClick={handleAdd}
-						>
+						<Button colorScheme="green" isLoading={saving} onClick={() => void handleAdd()}>
 							Ya
 						</Button>
 					</ModalFooter>
@@ -139,47 +97,14 @@ export const AddPengeluaranLog = ({ modalOpen, modalClose }: modalAlertProps) =>
 					<ModalHeader>Tambah Catatan Pengeluaran</ModalHeader>
 					<ModalCloseButton />
 					<ModalBody>
-						<Tabs colorScheme="green">
-							<TabList>
-								<Tab
-									width="50%"
-									onClick={() => {
-										setDataFromImage([]);
-										setImageTab(false);
-									}}
-								>
-									Form
-								</Tab>
-								<Tab
-									width="50%"
-									onClick={() => {
-										setImageTab(true);
-										setDataFromImage([]);
-										setNewData({
-											amount: 0,
-											createdAt: dayjs().format('YYYY-MM-DD'),
-											name: '',
-										});
-										setSelectedCategories(null);
-									}}
-								>
-									Foto
-								</Tab>
-							</TabList>
-							<TabPanels>
-								<TabPanel>
-									<ManualForm selectedBook={selectedBook} handleBookChange={handleBookChange} selectedCategories={selectedCategories} handleCategories={(v) => setSelectedCategories(v)} setNewData={setNewData} newData={newData} />
-								</TabPanel>
-								<TabPanel>Fitur di tekdown hehehehe</TabPanel>
-							</TabPanels>
-						</Tabs>
+						<ManualForm selectedBook={selectedBook} handleBookChange={handleBookChange} selectedCategories={selectedCategories} handleCategories={(v) => setSelectedCategories(v)} setNewData={setNewData} newData={newData} />
 					</ModalBody>
 
 					<ModalFooter>
 						<Button colorScheme="gray" mr="12px" onClick={() => modalClose()}>
 							tutup
 						</Button>
-						<Button colorScheme="green" onClick={BeforeAdd} isDisabled={imageTab ? (!dataFromImage || dataFromImage?.length == 0 ? true : false) : !newData.amount || !newData.name ? true : false}>
+						<Button colorScheme="green" onClick={modalConfirmOpen} isDisabled={!newData.amount || !newData.name.trim()}>
 							Submit
 						</Button>
 					</ModalFooter>

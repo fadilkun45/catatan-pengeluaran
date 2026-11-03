@@ -3,8 +3,8 @@ import { HelperFunction } from '../lib/HelperFunc';
 import { PengeluaranLogType } from '../Types/PengeluaranLog';
 import { BiX } from 'react-icons/bi';
 import { db } from '../services/db/db';
+import { deleteLog } from '../services/sync';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useState } from 'react';
 
 export const DetailLog = ({ item }: { item: PengeluaranLogType }) => {
   const { isOpen: modalConfirm, onOpen: modalConfirmOpen, onClose: modalConfirmClose } = useDisclosure();
@@ -15,9 +15,9 @@ export const DetailLog = ({ item }: { item: PengeluaranLogType }) => {
     return result;
   }, []);
 
-  const handleAdd = () => {
+  const handleDelete = async () => {
     try {
-      void db.pengeluaranLogs.delete(item.id);
+      await deleteLog(item);
       modalConfirmClose();
       toast({
         colorScheme: 'green',
@@ -41,13 +41,13 @@ export const DetailLog = ({ item }: { item: PengeluaranLogType }) => {
           <ModalHeader>Hapus Log</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <Text>Anda yakin ingin menyimpan kategori berikut ?</Text>
+            <Text>Anda yakin ingin menghapus log <b>{item.name}</b> ({HelperFunction.FormatToRupiah(item.amount)}) ?</Text>
           </ModalBody>
           <ModalFooter>
             <Button colorScheme="gray" mr={3} onClick={() => modalConfirmClose()}>
               Tidak
             </Button>
-            <Button colorScheme="green" onClick={() => void handleAdd()}>
+            <Button colorScheme="green" onClick={() => void handleDelete()}>
               Ya
             </Button>
           </ModalFooter>
@@ -66,7 +66,7 @@ export const DetailLog = ({ item }: { item: PengeluaranLogType }) => {
                item.categoriesId?.map((x) => {
               const categorieSelected = categories?.filter(categorie => categorie.id === x)[0]
               if (categorieSelected?.name) {
-                return <Badge px="3" py="3px" color={categorieSelected?.labelTextColor} background={categorieSelected?.labelColor} rounded="full" >{categorieSelected?.name}</Badge>
+                return <Badge key={x} px="3" py="3px" color={categorieSelected?.labelTextColor} background={categorieSelected?.labelColor} rounded="full" >{categorieSelected?.name}</Badge>
               }
             })
           }

@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { HStack, Input, Text, VStack } from '@chakra-ui/react';
+import { useEffect, useState } from 'react';
+import { Input, Text, VStack } from '@chakra-ui/react';
 import { HelperFunction } from '../../lib/HelperFunc';
 import { Dropdown } from '../../components/Dropdown';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -25,7 +25,7 @@ const ManualForm = ({
 }) => {
 	const [availableCategories, setAvailableCategories] = useState<OptionsType[]>([]);
 	const [availableBooks, setAvailableBooks] = useState<OptionsType[]>([]);
-	const { BookDetail, setActiveBooks } = useBookStore();
+	const { BookDetail } = useBookStore();
 
 	const categories = useLiveQuery(() => db.categoriesLog.filter((item) => BookDetail?.id === 'default' ? true : item.bookId === BookDetail?.id).toArray(), [BookDetail]);
 	const books = useLiveQuery(() => db.books.toArray(), []);

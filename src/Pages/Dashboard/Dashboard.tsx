@@ -74,26 +74,6 @@ export const Dashboard = () => {
 	// Query kategori
 	const categories = useLiveQuery(() => db.categoriesLog.toArray(), []);
 
-	// Inisialisasi buku default
-	useEffect(() => {
-		const addDefaultBook = async () => {
-			const defaultBook = await db.books.get('default');
-			if (!defaultBook) {
-				await db.books.add({
-					id: 'default',
-					name: 'Buku Utama',
-					createdAt: dayjs().format('YYYY-MM-DD'),
-				});
-				localStorage.setItem(import.meta.env.VITE_REACT_BOOKS, JSON.stringify({
-					id: 'default',
-					name: 'Buku Utama',
-					createdAt: dayjs().format('YYYY-MM-DD'),
-				}));
-			}
-		};
-		void addDefaultBook();
-	}, []);
-
 	// Render pengeluaran mingguan untuk line chart
 	useEffect(() => {
 		const temp: PengeluaranLogChartType[] = [];
@@ -138,7 +118,6 @@ export const Dashboard = () => {
 	// Ganti buku aktif
 	const handleChangeBook = (book: BookLogsType) => {
 		modalConfirmClose();
-		localStorage.setItem(import.meta.env.VITE_REACT_BOOKS, JSON.stringify(book));
 		setActiveBooks(book);
 	};
 

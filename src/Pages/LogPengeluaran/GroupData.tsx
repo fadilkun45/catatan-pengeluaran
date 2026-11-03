@@ -5,12 +5,12 @@ import { HelperFunction } from '../../lib/HelperFunc'
 import { DetailLog } from '../../components/DetailLog'
 import { BiChevronDown, BiChevronUp } from 'react-icons/bi'
 
-export const GroupData = ({item,key}: {item: any, key: number}) => {
+export const GroupData = ({ item }: { item: any }) => {
   const [toggle, setToggle] = useState(JSON.parse(localStorage.getItem(import.meta.env.VITE_REACT_DEFAULT_TOGGLE as string)))
 
 
   return (
-    <VStack w="full" mt="10px" key={key}>
+    <VStack w="full" mt="10px">
     <Divider />
 
     <VStack mb="10px" w="full">
@@ -33,7 +33,7 @@ export const GroupData = ({item,key}: {item: any, key: number}) => {
         </HStack>
 
         { toggle && item?.data?.map((details) => (
-            <DetailLog item={details} />
+            <DetailLog key={details.id} item={details} />
         ))}
     </VStack>
 </VStack>

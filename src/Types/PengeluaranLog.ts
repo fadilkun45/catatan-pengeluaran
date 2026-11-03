@@ -1,5 +1,6 @@
 export interface PengeluaranLogType {
     id?: number,
+    uid?: string,
     createdAt: string,
     name: string,
     amount: number,
