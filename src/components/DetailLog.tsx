@@ -1,13 +1,15 @@
 import { Badge, Button, HStack, Icon, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Spacer, Text, VStack, useDisclosure, useToast } from '@chakra-ui/react';
 import { HelperFunction } from '../lib/HelperFunc';
 import { PengeluaranLogType } from '../Types/PengeluaranLog';
-import { BiX } from 'react-icons/bi';
+import { BiPencil, BiX } from 'react-icons/bi';
 import { db } from '../services/db/db';
 import { deleteLog } from '../services/sync';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { AddPengeluaranLog } from '../Pages/AddPengeluaranLog/AddpengeluaranLog';
 
 export const DetailLog = ({ item }: { item: PengeluaranLogType }) => {
   const { isOpen: modalConfirm, onOpen: modalConfirmOpen, onClose: modalConfirmClose } = useDisclosure();
+  const { isOpen: modalEdit, onOpen: modalEditOpen, onClose: modalEditClose } = useDisclosure();
   const toast = useToast();
 
   const categories = useLiveQuery(() => {
@@ -20,13 +22,13 @@ export const DetailLog = ({ item }: { item: PengeluaranLogType }) => {
       await deleteLog(item);
       modalConfirmClose();
       toast({
-        colorScheme: 'green',
+        status: 'success',
         title: 'Hapus log pengeluaran berhasil',
         position: 'top-right',
       });
     } catch (error) {
       toast({
-        colorScheme: 'red',
+        status: 'error',
         title: 'error log hapus pengeluaran',
         position: 'top-right',
       });
@@ -35,6 +37,7 @@ export const DetailLog = ({ item }: { item: PengeluaranLogType }) => {
 
   return (
     <>
+      {modalEdit && <AddPengeluaranLog modalOpen={modalEdit} modalClose={modalEditClose} editItem={item} />}
       <Modal isOpen={modalConfirm} onClose={() => modalConfirmClose()}>
         <ModalOverlay />
         <ModalContent>
@@ -72,7 +75,10 @@ export const DetailLog = ({ item }: { item: PengeluaranLogType }) => {
           }
           </HStack>
           <Spacer />
-            <Button size="sm" rounded="6px" h="30px" onClick={modalConfirmOpen}>
+            <Button size="sm" rounded="6px" h="30px" aria-label="Edit" onClick={modalEditOpen}>
+              <Icon as={BiPencil} />
+            </Button>
+            <Button size="sm" rounded="6px" h="30px" aria-label="Hapus" onClick={modalConfirmOpen}>
               <Icon as={BiX} />
             </Button>
         </HStack>

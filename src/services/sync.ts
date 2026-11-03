@@ -41,6 +41,22 @@ export async function addLog(log: PengeluaranLogType) {
     return saved
 }
 
+// The Sheet script skips uids it already has, so an edit goes out as delete(old uid) + add(new uid).
+export async function updateLog(log: PengeluaranLogType) {
+    const saved = { ...log, uid: newId() }
+    await db.transaction('rw', tables(), async () => {
+        const old = await db.pengeluaranLogs.get(log.id)
+        if (!old) throw new Error('Catatan tidak ditemukan')
+        await db.pengeluaranLogs.put(saved)
+        if (getSheetUrl()) {
+            if (old.uid) await db.syncQueue.add({ op: 'delete', uid: old.uid })
+            await db.syncQueue.add(await toAddOp(saved))
+        }
+    })
+    void flush()
+    return saved
+}
+
 export async function deleteLog(log: PengeluaranLogType) {
     await db.transaction('rw', tables(), async () => {
         await db.pengeluaranLogs.delete(log.id)

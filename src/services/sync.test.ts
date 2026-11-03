@@ -28,7 +28,7 @@ await old.table('pengeluaranLogs').bulkAdd([
 old.close()
 
 const { db } = await import('./db/db')
-const { addLog, deleteLog, flush, setSheetUrl, useSyncStore } = await import('./sync')
+const { addLog, deleteLog, flush, setSheetUrl, updateLog, useSyncStore } = await import('./sync')
 const URL = 'https://script.google.com/macros/s/abc/exec'
 const sent = (f: ReturnType<typeof vi.fn>) => JSON.parse((f.mock.calls[f.mock.calls.length - 1] as [string, RequestInit])[1].body as string) as Record<string, unknown>[]
 
@@ -68,6 +68,19 @@ describe('sync ke Sheet', () => {
         const ops = sent(fetchMock)
         expect(ops.find((o) => o.nama === 'es teh')).toMatchObject({ op: 'add', kategori: 'Makan', buku: 'Buku Utama', nominal: 5000, tanggal: '2025-07-03' })
         expect(ops[ops.length - 1]).toMatchObject({ op: 'delete', uid: teh.uid })
+    })
+
+    it('edit: baris lokal berubah, Sheet dapat delete uid lama + add uid baru', async () => {
+        const fetchMock = vi.fn().mockResolvedValue({ status: 200, json: () => Promise.resolve({ ok: true }) })
+        globalThis.fetch = fetchMock
+        const roti = await addLog({ name: 'roti', amount: 8000, createdAt: '2025-07-05', bookId: 'default' })
+        await vi.waitFor(() => expect(useSyncStore.getState().sending).toBe(false))
+
+        const edited = await updateLog({ ...roti, amount: 9000 })
+        await vi.waitFor(() => expect(useSyncStore.getState().sending).toBe(false))
+        expect(await db.pengeluaranLogs.get(roti.id)).toMatchObject({ amount: 9000, uid: edited.uid })
+        expect(sent(fetchMock)).toMatchObject([{ op: 'delete', uid: roti.uid }, { op: 'add', uid: edited.uid, nominal: 9000 }])
+        expect(await db.syncQueue.count()).toBe(0)
     })
 
     it('Sheet menolak: antrean tidak dibuang', async () => {

@@ -1,8 +1,8 @@
 import { Button, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Text, useDisclosure, useToast } from '@chakra-ui/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { PengeluaranLogType } from '../../Types/PengeluaranLog';
 import { db } from '../../services/db/db';
-import { addLog } from '../../services/sync';
+import { addLog, updateLog } from '../../services/sync';
 import dayjs from 'dayjs';
 import { HelperFunction } from '../../lib/HelperFunc';
 import { OptionsType } from '../../Types/OptionType';
@@ -12,6 +12,7 @@ import { useBookStore } from '../../store/BookStore';
 interface modalAlertProps {
 	modalOpen: boolean;
 	modalClose: () => void;
+	editItem?: PengeluaranLogType;
 }
 
 // Today's total as the dashboard shows it: non-special logs in the active book ('default' shows every book).
@@ -21,11 +22,11 @@ const todayTotal = async (activeBookId: string) => {
 	return logs.filter((x) => !x.isSpecialCategories && (activeBookId === 'default' || x.bookId === activeBookId)).reduce((t, x) => t + x.amount, 0);
 };
 
-export const AddPengeluaranLog = ({ modalOpen, modalClose }: modalAlertProps) => {
+export const AddPengeluaranLog = ({ modalOpen, modalClose, editItem }: modalAlertProps) => {
 	const toast = useToast();
 	const { BookDetail } = useBookStore();
 	const { isOpen: modalConfirm, onOpen: modalConfirmOpen, onClose: modalConfirmClose } = useDisclosure();
-	const [newData, setNewData] = useState<PengeluaranLogType>({
+	const [newData, setNewData] = useState<PengeluaranLogType>(editItem ?? {
 		amount: 0,
 		createdAt: dayjs().format('YYYY-MM-DD'),
 		name: '',
@@ -35,6 +36,14 @@ export const AddPengeluaranLog = ({ modalOpen, modalClose }: modalAlertProps) =>
 	const [selectedBook, setSelectedBook] = useState<OptionsType>({ value: BookDetail.id, label: BookDetail.name, detail: BookDetail });
 	const [saving, setSaving] = useState(false);
 
+	// Edit: isi ulang pilihan kategori & buku dari catatan yang diedit.
+	useEffect(() => {
+		if (!editItem) return;
+		void db.categoriesLog.bulkGet((editItem.categoriesId ?? []).map(Number)).then((cats) =>
+			setSelectedCategories(cats.filter((c) => c !== undefined).map((c) => ({ label: c.name, value: c.id, detail: c }))));
+		void db.books.get(editItem.bookId ?? 'default').then((b) => b && setSelectedBook({ value: b.id, label: b.name, detail: b }));
+	}, [editItem]);
+
 	const limit = Number(JSON.parse(localStorage.getItem(import.meta.env.VITE_REACT_DEFAULT_LIMIT as string) || '0')) || 0;
 
 	const handleAdd = async () => {
@@ -43,25 +52,26 @@ export const AddPengeluaranLog = ({ modalOpen, modalClose }: modalAlertProps) =>
 
 		setSaving(true);
 		try {
-			await addLog({ ...newData, name: newData.name.trim(), categoriesId, isSpecialCategories });
+			const log = { ...newData, name: newData.name.trim(), categoriesId, isSpecialCategories };
+			await (editItem ? updateLog(log) : addLog(log));
 		} catch (error) {
-			toast({ colorScheme: 'red', title: 'Gagal menyimpan log pengeluaran', position: 'top-right' });
+			toast({ status: 'error', title: 'Gagal menyimpan log pengeluaran', position: 'top-right' });
 			setSaving(false);
 			modalConfirmClose();
 			return;
 		}
 		modalConfirmClose();
 		modalClose();
-		toast({ colorScheme: 'green', title: 'tambah log pengeluaran berhasil', position: 'top-right' });
+		toast({ status: 'success', title: editItem ? 'Log pengeluaran diperbarui' : 'Log pengeluaran ditambahkan', position: 'top-right' });
 
 		if (limit <= 0 || isSpecialCategories || newData.createdAt !== dayjs().format('YYYY-MM-DD')) return;
 		const total = await todayTotal(BookDetail.id);
 		const pct = (100 * total) / limit;
 		const pesan = `Pengeluaranmu hari ini sudah mencapai ${HelperFunction.FormatToRupiah(total)}, melewati batas limit ${HelperFunction.FormatToRupiah(limit)}.`;
 		if (pct >= 200) {
-			toast({ duration: 8000, colorScheme: 'red', title: `Peringatan! ${pesan}`, position: 'top-right' });
+			toast({ duration: 8000, status: 'error', title: `Peringatan! ${pesan}`, position: 'top-right' });
 		} else if (pct > 100) {
-			toast({ duration: 8000, colorScheme: 'yellow', title: pesan, position: 'top-right' });
+			toast({ duration: 8000, status: 'warning', title: pesan, position: 'top-right' });
 		}
 	};
 
@@ -75,7 +85,7 @@ export const AddPengeluaranLog = ({ modalOpen, modalClose }: modalAlertProps) =>
 			<Modal size="xl" isOpen={modalConfirm} onClose={() => modalConfirmClose()}>
 				<ModalOverlay />
 				<ModalContent>
-					<ModalHeader>Tambah log pengeluaran</ModalHeader>
+					<ModalHeader>{editItem ? 'Simpan perubahan' : 'Tambah log pengeluaran'}</ModalHeader>
 					<ModalCloseButton />
 					<ModalBody>
 						<Text>Anda yakin ingin menyimpan log pengeluaran berikut ?</Text>
@@ -94,7 +104,7 @@ export const AddPengeluaranLog = ({ modalOpen, modalClose }: modalAlertProps) =>
 			<Modal isOpen={modalOpen} onClose={() => modalClose()}>
 				<ModalOverlay />
 				<ModalContent>
-					<ModalHeader>Tambah Catatan Pengeluaran</ModalHeader>
+					<ModalHeader>{editItem ? 'Edit Catatan Pengeluaran' : 'Tambah Catatan Pengeluaran'}</ModalHeader>
 					<ModalCloseButton />
 					<ModalBody>
 						<ManualForm selectedBook={selectedBook} handleBookChange={handleBookChange} selectedCategories={selectedCategories} handleCategories={(v) => setSelectedCategories(v)} setNewData={setNewData} newData={newData} />

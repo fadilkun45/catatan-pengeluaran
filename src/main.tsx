@@ -7,6 +7,8 @@ import dayjs from 'dayjs'
 import { db } from './services/db/db'
 import { flush } from './services/sync'
 import { DEFAULT_BOOK } from './store/BookStore'
+import { makeTheme, useThemeStore } from './store/ThemeStore'
+import { useMemo } from 'react'
 
 dayjs.locale('id') 
 
@@ -15,8 +17,14 @@ void db.books.get(DEFAULT_BOOK.id).then((b) => { if (!b) return db.books.add(DEF
 void navigator.storage?.persist?.()
 void flush() // send whatever was left in the outbox last session
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-    <ChakraProvider>
-        <App />
-    </ChakraProvider>
-)
+const Root = () => {
+    const color = useThemeStore((s) => s.color)
+    const theme = useMemo(() => makeTheme(color), [color])
+    return (
+        <ChakraProvider theme={theme}>
+            <App />
+        </ChakraProvider>
+    )
+}
+
+ReactDOM.createRoot(document.getElementById('root')!).render(<Root />)
